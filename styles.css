@@ -1,0 +1,241 @@
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --marrom: #6b351f;
+  --marrom-escuro: #422315;
+  --dourado: #c99b55;
+  --creme: #fff8ed;
+  --texto: #39271f;
+  --branco: #ffffff;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--creme);
+  color: var(--texto);
+}
+
+.topo {
+  background: var(--marrom);
+  color: white;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 3px 10px #0002;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--dourado);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: Georgia, serif;
+  font-size: 30px;
+  color: var(--dourado);
+}
+
+.topo h2 {
+  font-family: Georgia, serif;
+  font-size: 25px;
+}
+
+.topo small {
+  color: #f1d9bd;
+}
+
+main {
+  max-width: 1000px;
+  margin: 25px auto;
+  padding: 0 18px;
+}
+
+h1, h2 {
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+h2 {
+  font-size: 20px;
+  color: var(--marrom);
+}
+
+p {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+#login {
+  max-width: 430px;
+  margin: 55px auto;
+}
+
+.painel-login,
+.produtos,
+.sabores,
+.comanda,
+.historico {
+  background: var(--branco);
+  padding: 22px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 14px #56331b12;
+}
+
+.painel-login {
+  border-top: 5px solid var(--dourado);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 16px 0 7px;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d9c9b8;
+  border-radius: 9px;
+  font-size: 16px;
+  background: white;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  background: var(--marrom);
+  color: white;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+.painel-login button,
+#enviar {
+  width: 100%;
+  margin-top: 18px;
+  background: var(--dourado);
+  color: var(--marrom-escuro);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sair {
+  background: #eee4dc;
+  color: var(--marrom);
+  padding: 11px 18px;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.grade button {
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--creme);
+  color: var(--marrom);
+  border: 1px solid #ead9c4;
+}
+
+.grade button strong {
+  font-size: 22px;
+}
+
+.grade button span {
+  color: #795331;
+}
+
+.comanda #itens {
+  padding: 12px 0;
+  min-height: 50px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+}
+
+.item button {
+  padding: 6px 10px;
+  background: #eee4dc;
+  color: var(--marrom);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0;
+  border-top: 2px solid #ead9c4;
+  font-size: 20px;
+}
+
+.total strong {
+  color: var(--marrom);
+  font-size: 24px;
+}
+
+#pedidos {
+  line-height: 1.7;
+}
+
+.pedido {
+  padding: 12px;
+  background: var(--creme);
+  border-radius: 9px;
+  margin-bottom: 10px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  main {
+    margin-top: 18px;
+  }
+
+  .grade {
+    grid-template-columns: 1fr;
+  }
+
+  .grade button {
+    min-height: 75px;
+  }
+
+  .cabecalho {
+    align-items: flex-start;
+  }
+}
