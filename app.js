@@ -336,28 +336,8 @@ function atualizarCaixa() {
   <span id="tempo-preparo-${numeroReal}">
     ${formatarDuracao(pedido.inicioPreparoEm)}
   </span>
-</p>
-        <button onclick="marcarPronto(${numeroReal})">
-          Pedido pronto
-        </button>
-        
-        <button onclick="abrirWhatsApp(${numeroReal}, 'pronto')">
-          Avisar cliente: pedido pronto
-        </button>
-        <button onclick="marcarEntregue(${numeroReal})">
-          Marcar como entregue
-        </button>
-      `;
-    } else {
-      producao = `
-        <p><strong>Produção:</strong> Entregue</p>
   
-
-  
-<label>WhatsApp deste cliente:</label>
-<input
-  type="tel"
-  id="telefone-pedido-${numeroReal}"
+  -${numeroReal}"
   value="${escapar(pedido.telefone || "")}"
   placeholder="DDD + número"
   inputmode="tel"
