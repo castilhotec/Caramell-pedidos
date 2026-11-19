@@ -331,7 +331,12 @@ function atualizarCaixa() {
     } else if (pedido.statusProducao === "Em preparo") {
       producao = `
         <p><strong>Produção:</strong> Em preparo</p>
-        <p>Tempo de preparo: ${formatarDuracao(pedido.inicioPreparoEm)}</p>
+        <p>
+  Tempo de preparo:
+  <span id="tempo-preparo-${numeroReal}">
+    ${formatarDuracao(pedido.inicioPreparoEm)}
+  </span>
+</p>
         <button onclick="marcarPronto(${numeroReal})">
           Pedido pronto
         </button>
