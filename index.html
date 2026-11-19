@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#6b351f">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Caramell">
   <title>Caramell Pedidos</title>
   <link rel="stylesheet" href="styles.css">
@@ -27,9 +26,17 @@
     <div class="painel-login">
       <h1>Bem-vindo!</h1>
       <p>Identifique-se para começar.</p>
+
       <label for="atendente">Nome do atendente</label>
       <input id="atendente" type="text" placeholder="Digite seu nome">
-      <button type="button" onclick="entrar()">Entrar</button>
+
+      <button type="button" onclick="entrar()">Entrar como atendente</button>
+
+      <hr>
+
+      <button type="button" onclick="entrarComoCaixa()">
+        Entrar como caixa
+      </button>
     </div>
   </section>
 
@@ -73,11 +80,15 @@
       <label for="cliente">Nome do cliente (opcional)</label>
       <input id="cliente" placeholder="Nome do cliente">
       <div id="itens"><p>Nenhum produto adicionado.</p></div>
+
       <div class="total">
         <span>Total</span>
         <strong id="total">R$ 0,00</strong>
       </div>
-      <button id="enviar" type="button" onclick="enviarPedido()">Enviar pedido</button>
+
+      <button id="enviar" type="button" onclick="enviarPedido()">
+        Enviar pedido
+      </button>
     </section>
 
     <section class="historico">
@@ -85,15 +96,32 @@
       <div id="pedidos"></div>
     </section>
   </section>
+
+  <section id="caixa" hidden>
+    <div class="cabecalho">
+      <div>
+        <h1>Caixa Caramell</h1>
+        <p>Controle de pedidos e pagamentos</p>
+      </div>
+      <button class="sair" type="button" onclick="sairCaixa()">Sair</button>
+    </div>
+
+    <section class="comanda">
+      <h2>Pedidos recebidos</h2>
+      <div id="pedidosCaixa">
+        <p>Nenhum pedido registrado.</p>
+      </div>
+    </section>
+  </section>
 </main>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js")
-      .catch(error => console.error("Erro no modo offline:", error));
+      .catch(error => console.error(error));
   });
 }
 </script>
