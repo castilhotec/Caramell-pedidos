@@ -688,3 +688,33 @@ setInterval(function () {
     }
   });
 }, 1000);
+
+
+function salvarTelefonePedido(indice) {
+  const pedido = pedidos[indice];
+
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
+  const campo = document.getElementById(
+    "telefone-pedido-" + indice
+  );
+
+  const telefone = campo.value.trim();
+
+  if (!telefone) {
+    alert("Informe o WhatsApp do cliente.");
+    campo.focus();
+    return;
+  }
+
+  pedido.telefone = telefone;
+
+  salvarDados();
+  atualizarCaixa();
+
+  alert("Telefone atualizado com sucesso!");
+}
+
