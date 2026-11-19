@@ -363,6 +363,8 @@ function atualizarCaixa() {
       producao = `
         <p><strong>Produção:</strong> Entregue</p>
   
+
+  
 <label>WhatsApp deste cliente:</label>
 <input
   type="tel"
@@ -375,7 +377,6 @@ function atualizarCaixa() {
 <button onclick="salvarTelefonePedido(${numeroReal})">
   Salvar telefone do cliente
 </button>
-
 
     let mensagemRecebido = "";
     if (pedido.statusProducao === "Recebido") {
