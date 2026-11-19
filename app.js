@@ -375,19 +375,6 @@ function atualizarCaixa() {
         </button>
       `;
     }
-
-    let mensagemPreparo = "";
-    if (pedido.statusProducao === "Em preparo") {
-      mensagemPreparo = `
-        <button onclick="abrirWhatsApp(${numeroReal}, 'preparo')">
-          Avisar: pedido em preparo
-        </button>
-      `;
-    }
-
-    return `
-      <div class="pedido">
-        <h3>Pedido nº ${pedido.numero}</h3>
         <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
         
 
