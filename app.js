@@ -3,14 +3,25 @@ let atendenteAtual = "";
 let carrinho = [];
 let pedidos = [];
 
+const CHAVE_PEDIDOS = "caramell_pedidos";
+const CHAVE_MENSAGENS = "caramell_mensagens";
+
+const mensagensPadrao = {
+  recebido: "Olá, {cliente}! Boa tarde! 🍿 Seja bem-vindo à Caramell!\n\nRecebemos seu pedido nº {pedido}. Em instantes, um de nossos atendentes dará continuidade ao seu atendimento. ❤️",
+  preparo: "Olá, {cliente}! 🍿\n\nSeu pedido nº {pedido} já está sendo preparado com muito carinho!\nAvisaremos assim que estiver prontinho. ❤️",
+  pronto: "Olá, {cliente}! 😍\n\nTemos uma ótima notícia! Seu pedido nº {pedido} da Caramell está prontinho!\n\nPode vir retirar. Agradecemos pela preferência! ❤️"
+};
+
+let mensagens = { ...mensagensPadrao };
+
 const formatarDinheiro = valor =>
-  Number(valor).toLocaleString("pt-BR", {
+  Number(valor || 0).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
   });
 
 function escapar(texto) {
-  return String(texto).replace(/[&<>"']/g, letra => ({
+  return String(texto ?? "").replace(/[&<>"']/g, letra => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -43,6 +54,7 @@ function entrarComoCaixa() {
   document.getElementById("sistema").hidden = true;
   document.getElementById("caixa").hidden = false;
 
+  carregarCamposMensagens();
   atualizarCaixa();
 }
 
@@ -52,10 +64,9 @@ function sairCaixa() {
 }
 
 function sair() {
-  if (carrinho.length > 0) {
-    if (!confirm("Deseja sair e perder o pedido atual?")) {
-      return;
-    }
+  if (carrinho.length > 0 &&
+      !confirm("Deseja sair e perder o pedido atual?")) {
+    return;
   }
 
   atendenteAtual = "";
@@ -63,6 +74,7 @@ function sair() {
 
   document.getElementById("atendente").value = "";
   document.getElementById("cliente").value = "";
+  document.getElementById("telefone").value = "";
   document.getElementById("sistema").hidden = true;
   document.getElementById("login").hidden = false;
 
@@ -73,8 +85,7 @@ function adicionar(produto, preco) {
   const sabor = document.getElementById("sabor").value;
 
   const existente = carrinho.find(item =>
-    item.produto === produto &&
-    item.sabor === sabor
+    item.produto === produto && item.sabor === sabor
   );
 
   if (existente) {
@@ -105,15 +116,13 @@ function alterarQuantidade(indice, variacao) {
 
 function calcularTotal() {
   return carrinho.reduce(
-    (total, item) =>
-      total + item.preco * item.quantidade,
+    (total, item) => total + item.preco * item.quantidade,
     0
   );
 }
 
 function atualizarTela() {
   const area = document.getElementById("itens");
-
   if (!area) return;
 
   if (carrinho.length === 0) {
@@ -154,15 +163,29 @@ function enviarPedido() {
   }
 
   const cliente = document.getElementById("cliente").value.trim();
+  const telefone = document.getElementById("telefone").value.trim();
+
+  const maiorNumero = pedidos.reduce(
+    (maior, pedido) => Math.max(maior, Number(pedido.numero) || 0),
+    0
+  );
+
+  const agora = new Date();
 
   const pedido = {
-    numero: pedidos.length + 1,
+    numero: maiorNumero + 1,
     atendente: atendenteAtual,
     cliente: cliente || "Cliente não informado",
+    telefone,
     itens: carrinho.map(item => ({ ...item })),
     total: calcularTotal(),
-    data: new Date().toLocaleString("pt-BR"),
+    data: agora.toLocaleString("pt-BR"),
+    criadoEm: agora.toISOString(),
     status: "Pendente",
+    statusProducao: "Recebido",
+    inicioPreparoEm: null,
+    prontoEm: null,
+    entregueEm: null,
     pagamento: "",
     recebido: 0,
     troco: 0
@@ -173,36 +196,42 @@ function enviarPedido() {
 
   carrinho = [];
   document.getElementById("cliente").value = "";
+  document.getElementById("telefone").value = "";
 
   atualizarTela();
 
   alert(
     "Pedido nº " + pedido.numero +
-    " registrado com sucesso!\n" +
-    "Total: " + formatarDinheiro(pedido.total)
+    " registrado com sucesso!\nTotal: " +
+    formatarDinheiro(pedido.total)
   );
 }
 
 function salvarDados() {
-  localStorage.setItem(
-    "caramell_pedidos",
-    JSON.stringify(pedidos)
-  );
+  localStorage.setItem(CHAVE_PEDIDOS, JSON.stringify(pedidos));
 }
 
 function carregarDados() {
   try {
     pedidos = JSON.parse(
-      localStorage.getItem("caramell_pedidos")
+      localStorage.getItem(CHAVE_PEDIDOS)
     ) || [];
   } catch (erro) {
     pedidos = [];
   }
+
+  pedidos.forEach(pedido => {
+    if (!pedido.statusProducao) {
+      pedido.statusProducao = "Recebido";
+    }
+    if (pedido.telefone === undefined) {
+      pedido.telefone = "";
+    }
+  });
 }
 
 function atualizarHistorico() {
   const area = document.getElementById("pedidos");
-
   if (!area) return;
 
   if (pedidos.length === 0) {
@@ -217,14 +246,28 @@ function atualizarHistorico() {
       Atendente: ${escapar(pedido.atendente)}<br>
       Data: ${escapar(pedido.data)}<br>
       Total: <strong>${formatarDinheiro(pedido.total)}</strong><br>
-      Situação: ${escapar(pedido.status)}
+      Pagamento: ${escapar(pedido.status)}<br>
+      Produção: ${escapar(pedido.statusProducao)}
     </div>
   `).join("");
 }
 
+function formatarDuracao(inicio) {
+  if (!inicio) return "Aguardando início";
+
+  const segundos = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(inicio).getTime()) / 1000)
+  );
+
+  const minutos = Math.floor(segundos / 60);
+  const resto = segundos % 60;
+
+  return minutos + " min " + resto + " s";
+}
+
 function atualizarCaixa() {
   const area = document.getElementById("pedidosCaixa");
-
   if (!area) return;
 
   if (pedidos.length === 0) {
@@ -235,7 +278,7 @@ function atualizarCaixa() {
   area.innerHTML = pedidos.slice().reverse().map((pedido, indice) => {
     const numeroReal = pedidos.length - 1 - indice;
 
-    const itens = pedido.itens.map(item => `
+    const itens = (pedido.itens || []).map(item => `
       <p>
         ${item.quantidade}x ${escapar(item.produto)}
         — ${escapar(item.sabor)}
@@ -276,13 +319,83 @@ function atualizarCaixa() {
       `;
     }
 
+    let producao = "";
+
+    if (pedido.statusProducao === "Recebido") {
+      producao = `
+        <p><strong>Produção:</strong> Pedido recebido</p>
+        <button onclick="iniciarPreparo(${numeroReal})">
+          Iniciar preparo
+        </button>
+      `;
+    } else if (pedido.statusProducao === "Em preparo") {
+      producao = `
+        <p><strong>Produção:</strong> Em preparo</p>
+        <p>Tempo de preparo: ${formatarDuracao(pedido.inicioPreparoEm)}</p>
+        <button onclick="marcarPronto(${numeroReal})">
+          Pedido pronto
+        </button>
+      `;
+    } else if (pedido.statusProducao === "Pronto") {
+      producao = `
+        <p><strong>Produção:</strong> Pedido pronto</p>
+        <p>Tempo de preparo: ${
+          pedido.inicioPreparoEm && pedido.prontoEm
+            ? formatarDuracaoFinal(
+                pedido.inicioPreparoEm,
+                pedido.prontoEm
+              )
+            : "Não registrado"
+        }</p>
+        <button onclick="abrirWhatsApp(${numeroReal}, 'pronto')">
+          Avisar cliente: pedido pronto
+        </button>
+        <button onclick="marcarEntregue(${numeroReal})">
+          Marcar como entregue
+        </button>
+      `;
+    } else {
+      producao = `
+        <p><strong>Produção:</strong> Entregue</p>
+        <p>Entrega registrada: ${escapar(pedido.entregueEm || "")}</p>
+      `;
+    }
+
+    let mensagemRecebido = "";
+    if (pedido.statusProducao === "Recebido") {
+      mensagemRecebido = `
+        <button onclick="abrirWhatsApp(${numeroReal}, 'recebido')">
+          Enviar mensagem de recebimento
+        </button>
+      `;
+    }
+
+    let mensagemPreparo = "";
+    if (pedido.statusProducao === "Em preparo") {
+      mensagemPreparo = `
+        <button onclick="abrirWhatsApp(${numeroReal}, 'preparo')">
+          Avisar: pedido em preparo
+        </button>
+      `;
+    }
+
     return `
       <div class="pedido">
         <h3>Pedido nº ${pedido.numero}</h3>
         <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
+        <p><strong>WhatsApp:</strong> ${escapar(pedido.telefone || "Não informado")}</p>
         <p><strong>Atendente:</strong> ${escapar(pedido.atendente)}</p>
         ${itens}
         <h3>Total: ${formatarDinheiro(pedido.total)}</h3>
+
+        <hr>
+        <h3>Acompanhamento da produção</h3>
+        ${producao}
+        ${mensagemRecebido}
+        ${mensagemPreparo}
+
+        <hr>
+        <h3>Pagamento</h3>
         <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
         ${pagamento}
       </div>
@@ -290,9 +403,135 @@ function atualizarCaixa() {
   }).join("");
 }
 
+function formatarDuracaoFinal(inicio, fim) {
+  const segundos = Math.max(
+    0,
+    Math.floor((new Date(fim).getTime() - new Date(inicio).getTime()) / 1000)
+  );
+
+  const minutos = Math.floor(segundos / 60);
+  const resto = segundos % 60;
+
+  return minutos + " min " + resto + " s";
+}
+
+function iniciarPreparo(indice) {
+  const pedido = pedidos[indice];
+  if (!pedido || pedido.statusProducao !== "Recebido") return;
+
+  pedido.statusProducao = "Em preparo";
+  pedido.inicioPreparoEm = new Date().toISOString();
+
+  salvarDados();
+  atualizarCaixa();
+  atualizarHistorico();
+}
+
+function marcarPronto(indice) {
+  const pedido = pedidos[indice];
+  if (!pedido || pedido.statusProducao !== "Em preparo") return;
+
+  pedido.statusProducao = "Pronto";
+  pedido.prontoEm = new Date().toISOString();
+
+  salvarDados();
+  atualizarCaixa();
+  atualizarHistorico();
+}
+
+function marcarEntregue(indice) {
+  const pedido = pedidos[indice];
+  if (!pedido || pedido.statusProducao !== "Pronto") return;
+
+  pedido.statusProducao = "Entregue";
+  pedido.entregueEm = new Date().toLocaleString("pt-BR");
+
+  salvarDados();
+  atualizarCaixa();
+  atualizarHistorico();
+}
+
+function carregarMensagens() {
+  try {
+    const salvas = JSON.parse(localStorage.getItem(CHAVE_MENSAGENS));
+    if (salvas) {
+      mensagens = { ...mensagensPadrao, ...salvas };
+    }
+  } catch (erro) {
+    mensagens = { ...mensagensPadrao };
+  }
+}
+
+function carregarCamposMensagens() {
+  carregarMensagens();
+
+  document.getElementById("mensagemRecebido").value = mensagens.recebido;
+  document.getElementById("mensagemPreparo").value = mensagens.preparo;
+  document.getElementById("mensagemPronto").value = mensagens.pronto;
+}
+
+function salvarMensagens() {
+  mensagens = {
+    recebido: document.getElementById("mensagemRecebido").value.trim(),
+    preparo: document.getElementById("mensagemPreparo").value.trim(),
+    pronto: document.getElementById("mensagemPronto").value.trim()
+  };
+
+  if (!mensagens.recebido || !mensagens.preparo || !mensagens.pronto) {
+    alert("Preencha as três mensagens antes de salvar.");
+    return;
+  }
+
+  localStorage.setItem(CHAVE_MENSAGENS, JSON.stringify(mensagens));
+
+  document.getElementById("avisoMensagens").textContent =
+    "Mensagens salvas com sucesso!";
+}
+
+function abrirWhatsApp(indice, etapa) {
+  const pedido = pedidos[indice];
+  if (!pedido) return;
+
+  let telefone = String(pedido.telefone || "").replace(/\D/g, "");
+
+  if (telefone.startsWith("0")) {
+    telefone = telefone.substring(1);
+  }
+
+  if (telefone.length === 10 || telefone.length === 11) {
+    telefone = "55" + telefone;
+  }
+
+  if (telefone.length < 12 || telefone.length > 13) {
+    alert("Este pedido não tem um número de WhatsApp válido. Confira o telefone cadastrado.");
+    return;
+  }
+
+  const textos = {
+    recebido: mensagens.recebido,
+    preparo: mensagens.preparo,
+    pronto: mensagens.pronto
+  };
+
+  let texto = textos[etapa];
+
+  if (!texto) {
+    alert("Mensagem não encontrada.");
+    return;
+  }
+
+  texto = texto
+    .replaceAll("{cliente}", pedido.cliente || "cliente")
+    .replaceAll("{pedido}", pedido.numero);
+
+  const url = "https://wa.me/" + telefone +
+    "?text=" + encodeURIComponent(texto);
+
+  window.open(url, "_blank");
+}
+
 function finalizarPedido(indice) {
   const pedido = pedidos[indice];
-
   if (!pedido || pedido.status !== "Pendente") return;
 
   const forma = document.getElementById(
@@ -303,10 +542,7 @@ function finalizarPedido(indice) {
   let troco = 0;
 
   if (forma === "Dinheiro") {
-    const campo = document.getElementById(
-      "recebido-" + indice
-    );
-
+    const campo = document.getElementById("recebido-" + indice);
     recebido = Number(campo.value);
 
     if (!campo.value || !Number.isFinite(recebido)) {
@@ -334,11 +570,11 @@ function finalizarPedido(indice) {
   atualizarHistorico();
 
   alert(
-    "Pagamento confirmado!\n" +
-    "Forma: " + forma + "\n" +
-    "Troco: " + formatarDinheiro(troco)
+    "Pagamento confirmado!\nForma: " + forma +
+    "\nTroco: " + formatarDinheiro(troco)
   );
 }
 
 carregarDados();
+carregarMensagens();
 atualizarTela();
