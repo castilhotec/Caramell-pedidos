@@ -362,9 +362,20 @@ function atualizarCaixa() {
     } else {
       producao = `
         <p><strong>Produção:</strong> Entregue</p>
-        <p>Entrega registrada: ${escapar(pedido.entregueEm || "")}</p>
-      `;
-    }
+  
+<label>WhatsApp deste cliente:</label>
+<input
+  type="tel"
+  id="telefone-pedido-${numeroReal}"
+  value="${escapar(pedido.telefone || "")}"
+  placeholder="DDD + número"
+  inputmode="tel"
+  autocomplete="off"
+>
+<button onclick="salvarTelefonePedido(${numeroReal})">
+  Salvar telefone do cliente
+</button>
+
 
     let mensagemRecebido = "";
     if (pedido.statusProducao === "Recebido") {
