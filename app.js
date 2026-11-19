@@ -388,7 +388,21 @@ function atualizarCaixa() {
       <div class="pedido">
         <h3>Pedido nº ${pedido.numero}</h3>
         <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
-        <p><strong>WhatsApp:</strong> ${escapar(pedido.telefone || "Não informado")}</p>
+        
+
+<label>WhatsApp deste cliente:</label>
+<input
+  type="tel"
+  id="telefone-pedido-${numeroReal}"
+  value="${escapar(pedido.telefone || "")}"
+  placeholder="DDD + número"
+  inputmode="tel"
+  autocomplete="off"
+>
+<button onclick="salvarTelefonePedido(${numeroReal})">
+  Salvar telefone do cliente
+</button>
+
         <p><strong>Atendente:</strong> ${escapar(pedido.atendente)}</p>
         ${itens}
         <h3>Total: ${formatarDinheiro(pedido.total)}</h3>
