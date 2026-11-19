@@ -5,12 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#6b351f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Caramell">
   <title>Caramell Pedidos</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-
 <header class="topo">
   <div class="logo">C</div>
   <div>
@@ -18,24 +20,17 @@
     <small>Sistema de pedidos</small>
   </div>
 </header>
-
 <main>
-
   <section id="login">
     <div class="painel-login">
       <h1>Bem-vindo!</h1>
       <p>Identifique-se para começar.</p>
-
       <label for="atendente">Nome do atendente</label>
-      <input id="atendente" type="text"
-        placeholder="Digite seu nome">
-
+      <input id="atendente" type="text" placeholder="Digite seu nome">
       <button onclick="entrar()">Entrar</button>
     </div>
   </section>
-
   <section id="sistema" hidden>
-
     <div class="cabecalho">
       <div>
         <h1>Novo pedido</h1>
@@ -43,28 +38,20 @@
       </div>
       <button class="sair" onclick="sair()">Sair</button>
     </div>
-
     <section class="produtos">
       <h2>Produtos</h2>
-
       <div class="grade">
         <button onclick="adicionar('Pipoca 250 ml',15)">
-          <strong>250 ml</strong>
-          <span>R$ 15,00</span>
+          <strong>250 ml</strong><span>R$ 15,00</span>
         </button>
-
         <button onclick="adicionar('Pipoca 500 ml',25)">
-          <strong>500 ml</strong>
-          <span>R$ 25,00</span>
+          <strong>500 ml</strong><span>R$ 25,00</span>
         </button>
-
         <button onclick="adicionar('Pipoca 900 ml',40)">
-          <strong>900 ml</strong>
-          <span>R$ 40,00</span>
+          <strong>900 ml</strong><span>R$ 40,00</span>
         </button>
       </div>
     </section>
-
     <section class="sabores">
       <h2>Sabores</h2>
       <select id="sabor">
@@ -75,36 +62,31 @@
         <option>Nesquik rosa</option>
       </select>
     </section>
-
     <section class="comanda">
       <h2>Comanda</h2>
-
       <label for="cliente">Nome do cliente (opcional)</label>
       <input id="cliente" placeholder="Nome do cliente">
-
-      <div id="itens">
-        <p>Nenhum produto adicionado.</p>
-      </div>
-
+      <div id="itens"><p>Nenhum produto adicionado.</p></div>
       <div class="total">
         <span>Total</span>
         <strong id="total">R$ 0,00</strong>
       </div>
-
-      <button id="enviar" onclick="enviarPedido()">
-        Enviar pedido
-      </button>
+      <button id="enviar" onclick="enviarPedido()">Enviar pedido</button>
     </section>
-
     <section class="historico">
       <h2>Pedidos registrados</h2>
       <div id="pedidos"></div>
     </section>
-
   </section>
-
 </main>
-
 <script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => console.error("Erro ao ativar modo offline:", error));
+  });
+}
+</script>
 </body>
 </html>
