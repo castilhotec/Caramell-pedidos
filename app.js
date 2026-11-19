@@ -653,3 +653,24 @@ window.salvarMensagens = function () {
         alert("Erro ao salvar as mensagens. Tente novamente.");
     }
 };
+
+
+// CRONÔMETRO AUTOMÁTICO DA PRODUÇÃO
+setInterval(function () {
+  pedidos.forEach(function (pedido, indice) {
+    if (
+      pedido.statusProducao === "Em preparo" &&
+      pedido.inicioPreparoEm
+    ) {
+      const visor = document.getElementById(
+        "tempo-preparo-" + indice
+      );
+
+      if (visor) {
+        visor.textContent = formatarDuracao(
+          pedido.inicioPreparoEm
+        );
+      }
+    }
+  });
+}, 1000);
