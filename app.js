@@ -493,23 +493,57 @@ function salvarMensagens() {
     "Mensagens salvas com sucesso!";
 }
 
+
+function normalizarWhatsApp(numero) {
+  let telefone = String(numero || "").replace(/\D/g, "");
+
+  // Remove o código do Brasil para validar o número nacional
+  if (telefone.startsWith("55") &&
+      (telefone.length === 12 || telefone.length === 13)) {
+    telefone = telefone.substring(2);
+  }
+
+  // DDD + telefone: 10 ou 11 dígitos
+  if (telefone.length !== 10 && telefone.length !== 11) {
+    return "";
+  }
+
+  const ddd = Number(telefone.substring(0, 2));
+
+  if (ddd < 11 || ddd > 99) {
+    return "";
+  }
+
+  return "55" + telefone;
+}
+
 function abrirWhatsApp(indice, etapa) {
   const pedido = pedidos[indice];
   if (!pedido) return;
 
-  let telefone = String(pedido.telefone || "").replace(/\D/g, "");
+  let telefone = normalizarWhatsApp(pedido.telefone);
 
-  if (telefone.startsWith("0")) {
-    telefone = telefone.substring(1);
-  }
+  // Se não houver telefone cadastrado, solicita o número do cliente
+  if (!telefone) {
+    const informado = prompt(
+      "Digite o WhatsApp DO CLIENTE com DDD.\n" +
+      "Exemplo: 73999999999"
+    );
 
-  if (telefone.length === 10 || telefone.length === 11) {
-    telefone = "55" + telefone;
-  }
+    if (!informado) {
+      alert("Envio cancelado. Nenhum telefone foi informado.");
+      return;
+    }
 
-  if (telefone.length < 12 || telefone.length > 13) {
-    alert("Este pedido não tem um número de WhatsApp válido. Confira o telefone cadastrado.");
-    return;
+    telefone = normalizarWhatsApp(informado);
+
+    if (!telefone) {
+      alert("Número inválido. Confira o DDD e o telefone do cliente.");
+      return;
+    }
+
+    pedido.telefone = informado;
+    salvarDados();
   }
 
   const textos = {
@@ -534,6 +568,7 @@ function abrirWhatsApp(indice, etapa) {
 
   window.open(url, "_blank");
 }
+
 
 function finalizarPedido(indice) {
   const pedido = pedidos[indice];
