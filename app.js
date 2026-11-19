@@ -348,40 +348,163 @@ function atualizarCaixa() {
 </button>
 
     let mensagemRecebido = "";
+
+    
+function atualizarCaixa() {
+  const area = document.getElementById("pedidosCaixa");
+  if (!area) return;
+
+  if (pedidos.length === 0) {
+    area.innerHTML = "<p>Nenhum pedido registrado.</p>";
+    return;
+  }
+
+  area.innerHTML = pedidos.slice().reverse().map((pedido, indice) => {
+    const numeroReal = pedidos.length - 1 - indice;
+
+    const itens = (pedido.itens || []).map(item => `
+      <p>
+        ${item.quantidade}x ${escapar(item.produto)}
+        — ${escapar(item.sabor)}
+      </p>
+    `).join("");
+
+    let pagamento = "";
+
+    if (pedido.status === "Pendente") {
+      pagamento = `
+        <label>Forma de pagamento</label>
+        <select id="pagamento-${numeroReal}">
+          <option value="Pix">Pix</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Débito">Cartão de débito</option>
+          <option value="Crédito">Cartão de crédito</option>
+        </select>
+
+        <label>Valor recebido (para dinheiro)</label>
+        <input
+          id="recebido-${numeroReal}"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Ex.: 50,00"
+        >
+
+        <button onclick="finalizarPedido(${numeroReal})">
+          Confirmar pagamento
+        </button>
+      `;
+    } else {
+      pagamento = `
+        <p><strong>Pagamento:</strong> ${escapar(pedido.pagamento)}</p>
+        <p><strong>Recebido:</strong> ${formatarDinheiro(pedido.recebido)}</p>
+        <p><strong>Troco:</strong> ${formatarDinheiro(pedido.troco)}</p>
+        <p>Pagamento confirmado.</p>
+      `;
+    }
+
+    let producao = "";
+    let mensagemRecebido = "";
+    let mensagemPreparo = "";
+    let mensagemPronto = "";
+
     if (pedido.statusProducao === "Recebido") {
+      producao = `
+        <p><strong>Produção:</strong> Pedido recebido</p>
+        <button onclick="iniciarPreparo(${numeroReal})">
+          Iniciar preparo
+        </button>
+      `;
+
       mensagemRecebido = `
         <button onclick="abrirWhatsApp(${numeroReal}, 'recebido')">
           Enviar mensagem de recebimento
         </button>
       `;
-    }
-        <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
-        
+    } else if (pedido.statusProducao === "Em preparo") {
+      producao = `
+        <p><strong>Produção:</strong> Em preparo</p>
+        <p>
+          Tempo de preparo:
+          <span id="tempo-preparo-${numeroReal}">
+            ${formatarDuracao(pedido.inicioPreparoEm)}
+          </span>
+        </p>
 
-<label>WhatsApp deste cliente:</label>
-<input
-  type="tel"
-  id="telefone-pedido-${numeroReal}"
-  value="${escapar(pedido.telefone || "")}"
-  placeholder="DDD + número"
-  inputmode="tel"
-  autocomplete="off"
->
-<button onclick="salvarTelefonePedido(${numeroReal})">
-  Salvar telefone do cliente
-</button>
+        <button onclick="marcarPronto(${numeroReal})">
+          Pedido pronto
+        </button>
+      `;
+
+      mensagemPreparo = `
+        <button onclick="abrirWhatsApp(${numeroReal}, 'preparo')">
+          Avisar cliente: pedido em preparo
+        </button>
+      `;
+    } else if (pedido.statusProducao === "Pronto") {
+      producao = `
+        <p><strong>Produção:</strong> Pedido pronto</p>
+        <button onclick="marcarEntregue(${numeroReal})">
+          Marcar como entregue
+        </button>
+      `;
+
+      mensagemPronto = `
+        <button onclick="abrirWhatsApp(${numeroReal}, 'pronto')">
+          Avisar cliente: pedido pronto
+        </button>
+      `;
+    } else {
+      producao = `
+        <p><strong>Produção:</strong> Entregue</p>
+      `;
+    }
+
+    return `
+      <div class="pedido">
+        <h3>Pedido nº ${pedido.numero}</h3>
+
+        <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
+
+        <label>WhatsApp deste cliente:</label>
+        <input
+          type="tel"
+          id="telefone-pedido-${numeroReal}"
+          value="${escapar(pedido.telefone || "")}"
+          placeholder="DDD + número"
+          inputmode="tel"
+          autocomplete="off"
+        >
+
+        <button onclick="salvarTelefonePedido(${numeroReal})">
+          Salvar telefone do cliente
+        </button>
 
         <p><strong>Atendente:</strong> ${escapar(pedido.atendente)}</p>
+
         ${itens}
+
         <h3>Total: ${formatarDinheiro(pedido.total)}</h3>
 
         <hr>
         <h3>Acompanhamento da produção</h3>
+
         ${producao}
         ${mensagemRecebido}
         ${mensagemPreparo}
+        ${mensagemPronto}
 
         <hr>
+        <h3>Pagamento</h3>
+        <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
+
+        ${pagamento}
+      </div>
+    `;
+  }).join("");
+}
+
+        
         <h3>Pagamento</h3>
         <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
         ${pagamento}
