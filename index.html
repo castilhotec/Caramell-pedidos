@@ -12,7 +12,6 @@
   <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-
 <header class="topo">
   <div class="logo">C</div>
   <div>
@@ -33,10 +32,9 @@
       <button type="button" onclick="entrar()">Entrar como atendente</button>
 
       <hr>
-
-      <button type="button" onclick="alert(typeof entrarComoCaixa)">
-  Entrar como caixa
-</button>
+      <button type="button" onclick="entrarComoCaixa()">
+        Entrar como caixa
+      </button>
     </div>
   </section>
 
@@ -77,8 +75,18 @@
 
     <section class="comanda">
       <h2>Comanda</h2>
-      <label for="cliente">Nome do cliente (opcional)</label>
+
+      <label for="cliente">Nome do cliente</label>
       <input id="cliente" placeholder="Nome do cliente">
+
+      <label for="telefone">WhatsApp do cliente</label>
+      <input
+        id="telefone"
+        type="tel"
+        inputmode="tel"
+        placeholder="DDD + número"
+      >
+
       <div id="itens"><p>Nenhum produto adicionado.</p></div>
 
       <div class="total">
@@ -112,10 +120,29 @@
         <p>Nenhum pedido registrado.</p>
       </div>
     </section>
+
+    <section class="comanda">
+      <h2>Mensagens do WhatsApp</h2>
+      <p>Edite os textos que serão preparados para envio aos clientes.</p>
+
+      <label for="mensagemRecebido">1. Pedido recebido</label>
+      <textarea id="mensagemRecebido" rows="4"></textarea>
+
+      <label for="mensagemPreparo">2. Pedido em preparo</label>
+      <textarea id="mensagemPreparo" rows="4"></textarea>
+
+      <label for="mensagemPronto">3. Pedido pronto</label>
+      <textarea id="mensagemPronto" rows="4"></textarea>
+
+      <button type="button" onclick="salvarMensagens()">
+        Salvar mensagens
+      </button>
+      <p id="avisoMensagens"></p>
+    </section>
   </section>
 </main>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 
 <script>
 if ("serviceWorker" in navigator) {
