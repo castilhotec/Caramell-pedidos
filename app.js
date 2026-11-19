@@ -578,3 +578,38 @@ function finalizarPedido(indice) {
 carregarDados();
 carregarMensagens();
 atualizarTela();
+
+window.salvarMensagens = function () {
+    const recebido = document.getElementById("mensagemRecebido");
+    const preparo = document.getElementById("mensagemPreparo");
+    const pronto = document.getElementById("mensagemPronto");
+    const aviso = document.getElementById("avisoMensagens");
+
+    if (!recebido || !preparo || !pronto) {
+        alert("Não foi possível localizar os campos das mensagens.");
+        return;
+    }
+
+    const novasMensagens = {
+        recebido: recebido.value,
+        preparo: preparo.value,
+        pronto: pronto.value
+    };
+
+    try {
+        localStorage.setItem(
+            "caramell_mensagens",
+            JSON.stringify(novasMensagens)
+        );
+
+        mensagens = novasMensagens;
+
+        if (aviso) {
+            aviso.textContent = "Mensagens salvas com sucesso!";
+        }
+
+        alert("Mensagens salvas com sucesso!");
+    } catch (erro) {
+        alert("Erro ao salvar as mensagens. Tente novamente.");
+    }
+};
