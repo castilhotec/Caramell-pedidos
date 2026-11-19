@@ -4,153 +4,363 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#6b351f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Caramell">
+  <meta name="theme-color" content="#542b20">
+
   <title>Caramell Pedidos</title>
-  <link rel="stylesheet" href="styles.css">
+
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #fff8f1;
+      color: #38241d;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      width: 100%;
+      max-width: 760px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    header h1 {
+      color: #713b28;
+      margin-bottom: 5px;
+    }
+
+    section {
+      background: white;
+      padding: 18px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 9px #00000012;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0 14px;
+      border: 1px solid #d8c5b9;
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 5px 3px;
+      background: #713b28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    .produto {
+      border: 1px solid #eadbd0;
+      border-radius: 10px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+
+    .produto button {
+      width: 100%;
+    }
+
+    .item, .pedido {
+      border: 1px solid #eadbd0;
+      border-radius: 10px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .total {
+      font-size: 23px;
+      font-weight: bold;
+      color: #713b28;
+    }
+
+    .secao-titulo {
+      color: #713b28;
+      border-bottom: 1px solid #eadbd0;
+      padding-bottom: 8px;
+    }
+
+    .botao-secundario {
+      background: #80685c;
+    }
+
+    .aviso {
+      color: #28743a;
+      font-weight: bold;
+      padding: 8px 0;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
 </head>
+
 <body>
-<header class="topo">
-  <div class="logo">C</div>
-  <div>
-    <h2>Caramell</h2>
-    <small>Sistema de pedidos</small>
-  </div>
-</header>
-
 <main>
+
+  <header>
+    <h1>🍿 CARAMELL</h1>
+    <p>Sistema de pedidos e atendimento</p>
+  </header>
+
+  <!-- LOGIN -->
   <section id="login">
-    <div class="painel-login">
-      <h1>Bem-vindo!</h1>
-      <p>Identifique-se para começar.</p>
+    <h2 class="secao-titulo">Acesso ao sistema</h2>
 
-      <label for="atendente">Nome do atendente</label>
-      <input id="atendente" type="text" placeholder="Digite seu nome">
+    <label for="atendente">Nome do atendente</label>
+    <input
+      type="text"
+      id="atendente"
+      placeholder="Digite seu nome"
+      autocomplete="name"
+    >
 
-      <button type="button" onclick="entrar()">Entrar como atendente</button>
+    <button type="button" onclick="entrar()">
+      Entrar como atendente
+    </button>
 
-      <hr>
-      <button type="button" onclick="entrarComoCaixa()">
-        Entrar como caixa
-      </button>
-    </div>
+    <button
+      type="button"
+      class="botao-secundario"
+      onclick="entrarComoCaixa()"
+    >
+      Entrar como caixa
+    </button>
   </section>
 
+  <!-- SISTEMA DO ATENDENTE -->
   <section id="sistema" hidden>
-    <div class="cabecalho">
-      <div>
-        <h1>Novo pedido</h1>
-        <p>Atendente: <strong id="nomeAtendente"></strong></p>
-      </div>
-      <button class="sair" type="button" onclick="sair()">Sair</button>
-    </div>
 
-    <section class="produtos">
-      <h2>Produtos</h2>
-      <div class="grade">
-        <button type="button" onclick="adicionar('Pipoca 250 ml',15)">
-          <strong>250 ml</strong><span>R$ 15,00</span>
-        </button>
-        <button type="button" onclick="adicionar('Pipoca 500 ml',25)">
-          <strong>500 ml</strong><span>R$ 25,00</span>
-        </button>
-        <button type="button" onclick="adicionar('Pipoca 900 ml',40)">
-          <strong>900 ml</strong><span>R$ 40,00</span>
-        </button>
-      </div>
-    </section>
+    <h2 class="secao-titulo">Novo pedido</h2>
 
-    <section class="sabores">
-      <h2>Sabores</h2>
-      <select id="sabor">
-        <option>Caramelo</option>
-        <option>Ninho</option>
-        <option>Trufada chocolate</option>
-        <option>Trufada Ovomaltine</option>
-        <option>Nesquik rosa</option>
-      </select>
-    </section>
+    <p>
+      Atendente:
+      <strong id="nomeAtendente"></strong>
+    </p>
 
-    <section class="comanda">
-      <h2>Comanda</h2>
+    <button
+      type="button"
+      class="botao-secundario"
+      onclick="sair()"
+    >
+      Sair
+    </button>
 
-      <label for="cliente">Nome do cliente</label>
-      <input id="cliente" placeholder="Nome do cliente">
+    <hr>
 
-      <label for="telefone">WhatsApp do cliente</label>
-      <input
-        id="telefone"
-        type="tel"
-        inputmode="tel"
-        placeholder="DDD + número"
+    <h3>Identificação do cliente</h3>
+
+    <label for="cliente">Nome do cliente</label>
+    <input
+      type="text"
+      id="cliente"
+      placeholder="Nome do cliente"
+    >
+
+    <label for="telefone">WhatsApp do cliente</label>
+    <input
+      type="tel"
+      id="telefone"
+      placeholder="DDD + número"
+      inputmode="tel"
+    >
+
+    <hr>
+
+    <h3>Escolha o sabor</h3>
+
+    <select id="sabor">
+      <option value="Caramelo">Caramelo</option>
+      <option value="Ninho">Ninho</option>
+      <option value="Trufada chocolate">Trufada chocolate</option>
+      <option value="Trufada Ovomaltine">Trufada Ovomaltine</option>
+      <option value="Nesquik">Nesquik rosa</option>
+    </select>
+
+    <h3>Produtos</h3>
+
+    <div class="produto">
+      <strong>Pipoca no pote 250 ml</strong>
+      <p>R$ 15,00</p>
+      <button
+        type="button"
+        onclick="adicionar('Pipoca no pote 250ml', 15)"
       >
-
-      <div id="itens"><p>Nenhum produto adicionado.</p></div>
-
-      <div class="total">
-        <span>Total</span>
-        <strong id="total">R$ 0,00</strong>
-      </div>
-
-      <button id="enviar" type="button" onclick="enviarPedido()">
-        Enviar pedido
+        Adicionar ao pedido
       </button>
-    </section>
-
-    <section class="historico">
-      <h2>Pedidos registrados</h2>
-      <div id="pedidos"></div>
-    </section>
-  </section>
-
-  <section id="caixa" hidden>
-    <div class="cabecalho">
-      <div>
-        <h1>Caixa Caramell</h1>
-        <p>Controle de pedidos e pagamentos</p>
-      </div>
-      <button class="sair" type="button" onclick="sairCaixa()">Sair</button>
     </div>
 
-    <section class="comanda">
-      <h2>Pedidos recebidos</h2>
-      <div id="pedidosCaixa">
-        <p>Nenhum pedido registrado.</p>
-      </div>
-    </section>
-
-    <section class="comanda">
-      <h2>Mensagens do WhatsApp</h2>
-      <p>Edite os textos que serão preparados para envio aos clientes.</p>
-
-      <label for="mensagemRecebido">1. Pedido recebido</label>
-      <textarea id="mensagemRecebido" rows="4"></textarea>
-
-      <label for="mensagemPreparo">2. Pedido em preparo</label>
-      <textarea id="mensagemPreparo" rows="4"></textarea>
-
-      <label for="mensagemPronto">3. Pedido pronto</label>
-      <textarea id="mensagemPronto" rows="4"></textarea>
-
-      <button type="button" onclick="salvarMensagens()">
-        Salvar mensagens
+    <div class="produto">
+      <strong>Pipoca no pote 500 ml</strong>
+      <p>R$ 25,00</p>
+      <button
+        type="button"
+        onclick="adicionar('Pipoca no pote 500ml', 25)"
+      >
+        Adicionar ao pedido
       </button>
-      <p id="avisoMensagens"></p>
-    </section>
+    </div>
+
+    <div class="produto">
+      <strong>Pipoca no pote 900 ml</strong>
+      <p>R$ 40,00</p>
+      <button
+        type="button"
+        onclick="adicionar('Pipoca no pote 900ml', 40)"
+      >
+        Adicionar ao pedido
+      </button>
+    </div>
+
+    <hr>
+
+    <h3>🛒 Carrinho</h3>
+
+    <div id="itens">
+      <p>Nenhum produto adicionado.</p>
+    </div>
+
+    <p class="total">
+      Total: <span id="total">R$ 0,00</span>
+    </p>
+
+    <button type="button" onclick="enviarPedido()">
+      Finalizar e enviar pedido
+    </button>
+
+    <hr>
+
+    <h3>Histórico de pedidos</h3>
+
+    <div id="pedidos">
+      <p>Nenhum pedido registrado ainda.</p>
+    </div>
+
   </section>
+
+  <!-- CAIXA -->
+  <section id="caixa" hidden>
+
+    <h2 class="secao-titulo">Painel do caixa</h2>
+
+    <button
+      type="button"
+      class="botao-secundario"
+      onclick="sairCaixa()"
+    >
+      Sair do caixa
+    </button>
+
+    <hr>
+
+    <h3>📋 Pedidos recebidos</h3>
+
+    <div id="pedidosCaixa">
+      <p>Nenhum pedido registrado.</p>
+    </div>
+
+    <hr>
+
+    <h3 class="secao-titulo">💬 Mensagens do WhatsApp</h3>
+
+    <p>
+      Personalize as mensagens enviadas aos clientes.
+      Você poderá revisá-las no WhatsApp antes de enviar.
+    </p>
+
+    <label for="mensagemRecebido">
+      1. Mensagem de recebimento do pedido
+    </label>
+
+    <textarea
+      id="mensagemRecebido"
+      placeholder="Mensagem de recebimento"
+    ></textarea>
+
+    <label for="mensagemPreparo">
+      2. Mensagem de início do preparo
+    </label>
+
+    <textarea
+      id="mensagemPreparo"
+      placeholder="Mensagem de preparo"
+    ></textarea>
+
+    <label for="mensagemPronto">
+      3. Mensagem de pedido pronto
+    </label>
+
+    <textarea
+      id="mensagemPronto"
+      placeholder="Mensagem de pedido pronto"
+    ></textarea>
+
+    <button
+      type="button"
+      onclick="salvarMensagens()"
+    >
+      Salvar mensagens
+    </button>
+
+    <p
+      id="avisoMensagens"
+      class="aviso"
+      aria-live="polite"
+    ></p>
+
+  </section>
+
+  <footer style="text-align:center; padding:15px;">
+    <small>Caramell Pedidos © 2026</small>
+  </footer>
+
 </main>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js")
-      .catch(error => console.error(error));
-  });
-}
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
 </script>
 
 </body>
