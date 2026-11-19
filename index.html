@@ -13,6 +13,7 @@
   <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
+
 <header class="topo">
   <div class="logo">C</div>
   <div>
@@ -20,6 +21,7 @@
     <small>Sistema de pedidos</small>
   </div>
 </header>
+
 <main>
   <section id="login">
     <div class="painel-login">
@@ -27,31 +29,34 @@
       <p>Identifique-se para começar.</p>
       <label for="atendente">Nome do atendente</label>
       <input id="atendente" type="text" placeholder="Digite seu nome">
-      <button onclick="entrar()">Entrar</button>
+      <button type="button" onclick="entrar()">Entrar</button>
     </div>
   </section>
+
   <section id="sistema" hidden>
     <div class="cabecalho">
       <div>
         <h1>Novo pedido</h1>
         <p>Atendente: <strong id="nomeAtendente"></strong></p>
       </div>
-      <button class="sair" onclick="sair()">Sair</button>
+      <button class="sair" type="button" onclick="sair()">Sair</button>
     </div>
+
     <section class="produtos">
       <h2>Produtos</h2>
       <div class="grade">
-        <button onclick="adicionar('Pipoca 250 ml',15)">
+        <button type="button" onclick="adicionar('Pipoca 250 ml',15)">
           <strong>250 ml</strong><span>R$ 15,00</span>
         </button>
-        <button onclick="adicionar('Pipoca 500 ml',25)">
+        <button type="button" onclick="adicionar('Pipoca 500 ml',25)">
           <strong>500 ml</strong><span>R$ 25,00</span>
         </button>
-        <button onclick="adicionar('Pipoca 900 ml',40)">
+        <button type="button" onclick="adicionar('Pipoca 900 ml',40)">
           <strong>900 ml</strong><span>R$ 40,00</span>
         </button>
       </div>
     </section>
+
     <section class="sabores">
       <h2>Sabores</h2>
       <select id="sabor">
@@ -62,6 +67,7 @@
         <option>Nesquik rosa</option>
       </select>
     </section>
+
     <section class="comanda">
       <h2>Comanda</h2>
       <label for="cliente">Nome do cliente (opcional)</label>
@@ -71,22 +77,26 @@
         <span>Total</span>
         <strong id="total">R$ 0,00</strong>
       </div>
-      <button id="enviar" onclick="enviarPedido()">Enviar pedido</button>
+      <button id="enviar" type="button" onclick="enviarPedido()">Enviar pedido</button>
     </section>
+
     <section class="historico">
       <h2>Pedidos registrados</h2>
       <div id="pedidos"></div>
     </section>
   </section>
 </main>
-<script src="app.js"></script>
+
+<script src="app.js?v=2"></script>
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js")
-      .catch(error => console.error("Erro ao ativar modo offline:", error));
+      .catch(error => console.error("Erro no modo offline:", error));
   });
 }
 </script>
+
 </body>
 </html>
