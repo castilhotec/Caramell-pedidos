@@ -340,18 +340,7 @@ function atualizarCaixa() {
         <button onclick="marcarPronto(${numeroReal})">
           Pedido pronto
         </button>
-      `;
-    } else if (pedido.statusProducao === "Pronto") {
-      producao = `
-        <p><strong>Produção:</strong> Pedido pronto</p>
-        <p>Tempo de preparo: ${
-          pedido.inicioPreparoEm && pedido.prontoEm
-            ? formatarDuracaoFinal(
-                pedido.inicioPreparoEm,
-                pedido.prontoEm
-              )
-            : "Não registrado"
-        }</p>
+        
         <button onclick="abrirWhatsApp(${numeroReal}, 'pronto')">
           Avisar cliente: pedido pronto
         </button>
