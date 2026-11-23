@@ -128,6 +128,79 @@ function calcularTotal() {
   );
 }
 
+
+// ==========================================
+// IMPRESSÃO DE COMANDAS - CARAMELL / RAWBT
+// ==========================================
+
+function gerarComanda(pedido) {
+  const linha = "--------------------------------";
+
+  let texto = "";
+
+  texto += "\n";
+  texto += "          CARAMELL\n";
+  texto += "       PEDIDO DE VENDA\n";
+  texto += linha + "\n";
+
+  texto += "PEDIDO Nº: " + pedido.numero + "\n";
+  texto += "DATA: " + pedido.data + "\n";
+  texto += "CLIENTE: " + pedido.cliente + "\n";
+  texto += "ATENDENTE: " + pedido.atendente + "\n";
+
+  texto += linha + "\n";
+  texto += "PRODUTOS\n\n";
+
+  (pedido.itens || []).forEach(item => {
+    texto += item.quantidade + "x " + item.produto + "\n";
+    texto += "   Sabor: " + item.sabor + "\n";
+    texto += "   Unit.: " + formatarDinheiro(item.preco) + "\n";
+    texto += "   Total: " +
+      formatarDinheiro(item.preco * item.quantidade) + "\n\n";
+  });
+
+  texto += linha + "\n";
+  texto += "TOTAL: " + formatarDinheiro(pedido.total) + "\n";
+  texto += linha + "\n";
+
+  texto += "PAGAMENTO: " + (pedido.pagamento || "Pendente") + "\n";
+
+  if (pedido.status === "Pago") {
+    texto += "RECEBIDO: " + formatarDinheiro(pedido.recebido) + "\n";
+    texto += "TROCO: " + formatarDinheiro(pedido.troco) + "\n";
+  }
+
+  texto += linha + "\n";
+  texto += "     OBRIGADO PELA PREFERENCIA!\n";
+  texto += "          CARAMELL\n";
+  texto += "\n\n\n";
+
+  return texto;
+}
+
+function imprimirPedido(pedidoOuIndice) {
+  const pedido = typeof pedidoOuIndice === "number"
+    ? pedidos[pedidoOuIndice]
+    : pedidoOuIndice;
+
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
+  const texto = gerarComanda(pedido);
+
+  try {
+    const base64 = btoa(unescape(encodeURIComponent(texto)));
+
+    window.location.href = "rawbt:base64," + base64;
+
+  } catch (erro) {
+    alert("Não foi possível preparar a impressão.");
+    console.error(erro);
+  }
+}
+
 function atualizarTela() {
   const area = document.getElementById("itens");
 
@@ -160,6 +233,8 @@ function atualizarTela() {
   atualizarHistorico();
   atualizarCaixa();
 }
+
+
 
 function enviarPedido() {
   if (!atendenteAtual) {
@@ -226,7 +301,13 @@ function enviarPedido() {
     " registrado com sucesso!\nTotal: " +
     formatarDinheiro(pedido.total)
   );
+
+  // IMPRESSÃO AUTOMÁTICA
+  imprimirPedido(pedido);
 }
+
+
+
 
 function salvarDados() {
   localStorage.setItem(
