@@ -255,54 +255,9 @@ function carregarDados() {
   });
 }
 
-function atualizarHistorico() {
-  const area = document.getElementById("pedidos");
 
-  if (!area) return;
 
-  if (pedidos.length === 0) {
-    area.innerHTML = "<p>Nenhum pedido registrado ainda.</p>";
-    return;
-  }
 
-  area.innerHTML = pedidos.slice().reverse().map(pedido => `
-    <div class="pedido">
-      <strong>Pedido nº ${pedido.numero}</strong><br>
-
-      Cliente: ${escapar(pedido.cliente)}<br>
-      Atendente: ${escapar(pedido.atendente)}<br>
-      Data: ${escapar(pedido.data)}<br>
-
-      Total:
-      <strong>${formatarDinheiro(pedido.total)}</strong><br>
-
-      Pagamento: ${escapar(pedido.status)}<br>
-      Produção: ${escapar(pedido.statusProducao)}
-    </div>
-  `).join("");
-}
-
-function atualizarHistorico() {
-  const area = document.getElementById("pedidos");
-  if (!area) return;
-
-  if (pedidos.length === 0) {
-    area.innerHTML = "<p>Nenhum pedido registrado ainda.</p>";
-    return;
-  }
-
-  area.innerHTML = pedidos.slice().reverse().map(pedido => `
-    <div class="pedido">
-      <strong>Pedido nº ${pedido.numero}</strong><br>
-      Cliente: ${escapar(pedido.cliente)}<br>
-      Atendente: ${escapar(pedido.atendente)}<br>
-      Data: ${escapar(pedido.data)}<br>
-      Total: <strong>${formatarDinheiro(pedido.total)}</strong><br>
-      Pagamento: ${escapar(pedido.status)}<br>
-      Produção: ${escapar(pedido.statusProducao)}
-    </div>
-  `).join("");
-}
 
 function formatarDuracao(inicio) {
   if (!inicio) return "Aguardando início";
@@ -342,6 +297,7 @@ function atualizarCaixa() {
     if (pedido.status === "Pendente") {
       pagamento = `
         <label>Forma de pagamento</label>
+
         <select id="pagamento-${numeroReal}">
           <option value="Pix">Pix</option>
           <option value="Dinheiro">Dinheiro</option>
@@ -350,90 +306,7 @@ function atualizarCaixa() {
         </select>
 
         <label>Valor recebido (para dinheiro)</label>
-        <input
-          id="recebido-${numeroReal}"
-          type="number"
-          min="0"
-          step="0.01"
-          placeholder="Ex.: 50,00"
-        >
 
-        <button onclick="finalizarPedido(${numeroReal})">
-          Confirmar pagamento
-        </button>
-      `;
-    } else {
-      pagamento = `
-        <p><strong>Pagamento:</strong> ${escapar(pedido.pagamento)}</p>
-        <p><strong>Recebido:</strong> ${formatarDinheiro(pedido.recebido)}</p>
-        <p><strong>Troco:</strong> ${formatarDinheiro(pedido.troco)}</p>
-        <p>Pagamento confirmado.</p>
-      `;
-    }
-
-    let producao = "";
-
-    if (pedido.statusProducao === "Recebido") {
-      producao = `
-        <p><strong>Produção:</strong> Pedido recebido</p>
-        <button onclick="iniciarPreparo(${numeroReal})">
-          Iniciar preparo
-        </button>
-      `;
-    } else if (pedido.statusProducao === "Em preparo") {
-      producao = `
-        <p><strong>Produção:</strong> Em preparo</p>
-        <p>
-  Tempo de preparo:
-  <span id="tempo-preparo-${numeroReal}">
-    ${formatarDuracao(pedido.inicioPreparoEm)}
-  </span>
-  
-  -${numeroReal}"
-  value="${escapar(pedido.telefone || "")}"
-  placeholder="DDD + número"
-  inputmode="tel"
-  autocomplete="off"
->
-<button onclick="salvarTelefonePedido(${numeroReal})">
-  Salvar telefone do cliente
-</button>
-
-    let mensagemRecebido = "";
-
-    
-function atualizarCaixa() {
-  const area = document.getElementById("pedidosCaixa");
-  if (!area) return;
-
-  if (pedidos.length === 0) {
-    area.innerHTML = "<p>Nenhum pedido registrado.</p>";
-    return;
-  }
-
-  area.innerHTML = pedidos.slice().reverse().map((pedido, indice) => {
-    const numeroReal = pedidos.length - 1 - indice;
-
-    const itens = (pedido.itens || []).map(item => `
-      <p>
-        ${item.quantidade}x ${escapar(item.produto)}
-        — ${escapar(item.sabor)}
-      </p>
-    `).join("");
-
-    let pagamento = "";
-
-    if (pedido.status === "Pendente") {
-      pagamento = `
-        <label>Forma de pagamento</label>
-        <select id="pagamento-${numeroReal}">
-          <option value="Pix">Pix</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Débito">Cartão de débito</option>
-          <option value="Crédito">Cartão de crédito</option>
-        </select>
-
-        <label>Valor recebido (para dinheiro)</label>
         <input
           id="recebido-${numeroReal}"
           type="number"
@@ -463,6 +336,7 @@ function atualizarCaixa() {
     if (pedido.statusProducao === "Recebido") {
       producao = `
         <p><strong>Produção:</strong> Pedido recebido</p>
+
         <button onclick="iniciarPreparo(${numeroReal})">
           Iniciar preparo
         </button>
@@ -473,9 +347,11 @@ function atualizarCaixa() {
           Enviar mensagem de recebimento
         </button>
       `;
+
     } else if (pedido.statusProducao === "Em preparo") {
       producao = `
         <p><strong>Produção:</strong> Em preparo</p>
+
         <p>
           Tempo de preparo:
           <span id="tempo-preparo-${numeroReal}">
@@ -493,9 +369,11 @@ function atualizarCaixa() {
           Avisar cliente: pedido em preparo
         </button>
       `;
+
     } else if (pedido.statusProducao === "Pronto") {
       producao = `
         <p><strong>Produção:</strong> Pedido pronto</p>
+
         <button onclick="marcarEntregue(${numeroReal})">
           Marcar como entregue
         </button>
@@ -506,6 +384,7 @@ function atualizarCaixa() {
           Avisar cliente: pedido pronto
         </button>
       `;
+
     } else {
       producao = `
         <p><strong>Produção:</strong> Entregue</p>
@@ -516,9 +395,13 @@ function atualizarCaixa() {
       <div class="pedido">
         <h3>Pedido nº ${pedido.numero}</h3>
 
-        <p><strong>Cliente:</strong> ${escapar(pedido.cliente)}</p>
+        <p>
+          <strong>Cliente:</strong>
+          ${escapar(pedido.cliente)}
+        </p>
 
         <label>WhatsApp deste cliente:</label>
+
         <input
           type="tel"
           id="telefone-pedido-${numeroReal}"
@@ -532,13 +415,17 @@ function atualizarCaixa() {
           Salvar telefone do cliente
         </button>
 
-        <p><strong>Atendente:</strong> ${escapar(pedido.atendente)}</p>
+        <p>
+          <strong>Atendente:</strong>
+          ${escapar(pedido.atendente)}
+        </p>
 
         ${itens}
 
         <h3>Total: ${formatarDinheiro(pedido.total)}</h3>
 
         <hr>
+
         <h3>Acompanhamento da produção</h3>
 
         ${producao}
@@ -547,38 +434,23 @@ function atualizarCaixa() {
         ${mensagemPronto}
 
         <hr>
+
         <h3>Pagamento</h3>
-        <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
+
+        <p>
+          <strong>Status:</strong>
+          ${escapar(pedido.status)}
+        </p>
 
         ${pagamento}
       </div>
     `;
   }).join("");
-}
-
-        
-        <h3>Pagamento</h3>
-        <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
-        ${pagamento}
-      </div>
-    `;
-  }).join("");
-}
-
-function formatarDuracaoFinal(inicio, fim) {
-  const segundos = Math.max(
-    0,
-    Math.floor((new Date(fim).getTime() - new Date(inicio).getTime()) / 1000)
-  );
-
-  const minutos = Math.floor(segundos / 60);
-  const resto = segundos % 60;
-
-  return minutos + " min " + resto + " s";
 }
 
 function iniciarPreparo(indice) {
   const pedido = pedidos[indice];
+
   if (!pedido || pedido.statusProducao !== "Recebido") return;
 
   pedido.statusProducao = "Em preparo";
@@ -591,6 +463,7 @@ function iniciarPreparo(indice) {
 
 function marcarPronto(indice) {
   const pedido = pedidos[indice];
+
   if (!pedido || pedido.statusProducao !== "Em preparo") return;
 
   pedido.statusProducao = "Pronto";
@@ -603,10 +476,11 @@ function marcarPronto(indice) {
 
 function marcarEntregue(indice) {
   const pedido = pedidos[indice];
+
   if (!pedido || pedido.statusProducao !== "Pronto") return;
 
   pedido.statusProducao = "Entregue";
-  pedido.entregueEm = new Date().toLocaleString("pt-BR");
+  pedido.entregueEm = new Date().toISOString();
 
   salvarDados();
   atualizarCaixa();
@@ -615,10 +489,15 @@ function marcarEntregue(indice) {
 
 function carregarMensagens() {
   try {
-    const salvas = JSON.parse(localStorage.getItem(CHAVE_MENSAGENS));
-    if (salvas) {
-      mensagens = { ...mensagensPadrao, ...salvas };
-    }
+    const salvas = JSON.parse(
+      localStorage.getItem(CHAVE_MENSAGENS)
+    );
+
+    mensagens = {
+      ...mensagensPadrao,
+      ...(salvas || {})
+    };
+
   } catch (erro) {
     mensagens = { ...mensagensPadrao };
   }
@@ -627,40 +506,69 @@ function carregarMensagens() {
 function carregarCamposMensagens() {
   carregarMensagens();
 
-  document.getElementById("mensagemRecebido").value = mensagens.recebido;
-  document.getElementById("mensagemPreparo").value = mensagens.preparo;
-  document.getElementById("mensagemPronto").value = mensagens.pronto;
+  const recebido = document.getElementById("mensagemRecebido");
+  const preparo = document.getElementById("mensagemPreparo");
+  const pronto = document.getElementById("mensagemPronto");
+
+  if (recebido) recebido.value = mensagens.recebido;
+  if (preparo) preparo.value = mensagens.preparo;
+  if (pronto) pronto.value = mensagens.pronto;
 }
 
 function salvarMensagens() {
-  mensagens = {
-    recebido: document.getElementById("mensagemRecebido").value.trim(),
-    preparo: document.getElementById("mensagemPreparo").value.trim(),
-    pronto: document.getElementById("mensagemPronto").value.trim()
+  const recebido = document.getElementById("mensagemRecebido");
+  const preparo = document.getElementById("mensagemPreparo");
+  const pronto = document.getElementById("mensagemPronto");
+
+  if (!recebido || !preparo || !pronto) {
+    alert("Não foi possível localizar os campos das mensagens.");
+    return;
+  }
+
+  const novasMensagens = {
+    recebido: recebido.value.trim(),
+    preparo: preparo.value.trim(),
+    pronto: pronto.value.trim()
   };
 
-  if (!mensagens.recebido || !mensagens.preparo || !mensagens.pronto) {
+  if (!novasMensagens.recebido ||
+      !novasMensagens.preparo ||
+      !novasMensagens.pronto) {
     alert("Preencha as três mensagens antes de salvar.");
     return;
   }
 
-  localStorage.setItem(CHAVE_MENSAGENS, JSON.stringify(mensagens));
+  try {
+    localStorage.setItem(
+      CHAVE_MENSAGENS,
+      JSON.stringify(novasMensagens)
+    );
 
-  document.getElementById("avisoMensagens").textContent =
-    "Mensagens salvas com sucesso!";
+    mensagens = novasMensagens;
+
+    const aviso = document.getElementById("avisoMensagens");
+
+    if (aviso) {
+      aviso.textContent = "Mensagens salvas com sucesso!";
+    }
+
+    alert("Mensagens salvas com sucesso!");
+
+  } catch (erro) {
+    alert("Erro ao salvar as mensagens.");
+  }
 }
-
 
 function normalizarWhatsApp(numero) {
   let telefone = String(numero || "").replace(/\D/g, "");
 
-  // Remove o código do Brasil para validar o número nacional
-  if (telefone.startsWith("55") &&
-      (telefone.length === 12 || telefone.length === 13)) {
+  if (
+    telefone.startsWith("55") &&
+    (telefone.length === 12 || telefone.length === 13)
+  ) {
     telefone = telefone.substring(2);
   }
 
-  // DDD + telefone: 10 ou 11 dígitos
   if (telefone.length !== 10 && telefone.length !== 11) {
     return "";
   }
@@ -674,34 +582,76 @@ function normalizarWhatsApp(numero) {
   return "55" + telefone;
 }
 
+function salvarTelefonePedido(indice) {
+  const pedido = pedidos[indice];
+
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
+  const campo = document.getElementById(
+    "telefone-pedido-" + indice
+  );
+
+  if (!campo) return;
+
+  const telefone = campo.value.trim();
+
+  if (!normalizarWhatsApp(telefone)) {
+    alert("Informe um WhatsApp válido com DDD.");
+    campo.focus();
+    return;
+  }
+
+  pedido.telefone = telefone;
+
+  salvarDados();
+  atualizarCaixa();
+
+  alert("Telefone atualizado com sucesso!");
+}
+
 function abrirWhatsApp(indice, etapa) {
   const pedido = pedidos[indice];
-  if (!pedido) return;
 
-  let telefone = normalizarWhatsApp(pedido.telefone);
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
 
-  // Se não houver telefone cadastrado, solicita o número do cliente
-  if (!telefone) {
-    const informado = prompt(
+  // Sempre consulta o campo atual deste pedido.
+  const campo = document.getElementById(
+    "telefone-pedido-" + indice
+  );
+
+  let numeroInformado = campo
+    ? campo.value.trim()
+    : pedido.telefone;
+
+  if (!numeroInformado) {
+    numeroInformado = prompt(
       "Digite o WhatsApp DO CLIENTE com DDD.\n" +
       "Exemplo: 73999999999"
     );
-
-    if (!informado) {
-      alert("Envio cancelado. Nenhum telefone foi informado.");
-      return;
-    }
-
-    telefone = normalizarWhatsApp(informado);
-
-    if (!telefone) {
-      alert("Número inválido. Confira o DDD e o telefone do cliente.");
-      return;
-    }
-
-    pedido.telefone = informado;
-    salvarDados();
   }
+
+  if (!numeroInformado) {
+    alert("Envio cancelado.");
+    return;
+  }
+
+  const telefone = normalizarWhatsApp(numeroInformado);
+
+  if (!telefone) {
+    alert("Número inválido. Confira o DDD e o telefone.");
+    return;
+  }
+
+  // Salva o número atualizado no pedido correto.
+  pedido.telefone = numeroInformado;
+
+  salvarDados();
 
   const textos = {
     recebido: mensagens.recebido,
@@ -720,26 +670,34 @@ function abrirWhatsApp(indice, etapa) {
     .replaceAll("{cliente}", pedido.cliente || "cliente")
     .replaceAll("{pedido}", pedido.numero);
 
-  const url = "https://wa.me/" + telefone +
+  const url =
+    "https://wa.me/" + telefone +
     "?text=" + encodeURIComponent(texto);
 
   window.open(url, "_blank");
 }
 
-
 function finalizarPedido(indice) {
   const pedido = pedidos[indice];
+
   if (!pedido || pedido.status !== "Pendente") return;
 
-  const forma = document.getElementById(
+  const campoPagamento = document.getElementById(
     "pagamento-" + indice
-  ).value;
+  );
+
+  if (!campoPagamento) return;
+
+  const forma = campoPagamento.value;
 
   let recebido = pedido.total;
   let troco = 0;
 
   if (forma === "Dinheiro") {
-    const campo = document.getElementById("recebido-" + indice);
+    const campo = document.getElementById(
+      "recebido-" + indice
+    );
+
     recebido = Number(campo.value);
 
     if (!campo.value || !Number.isFinite(recebido)) {
@@ -749,7 +707,7 @@ function finalizarPedido(indice) {
     }
 
     if (recebido < pedido.total) {
-      alert("O valor recebido é menor que o total do pedido.");
+      alert("O valor recebido é menor que o total.");
       campo.focus();
       return;
     }
@@ -767,54 +725,16 @@ function finalizarPedido(indice) {
   atualizarHistorico();
 
   alert(
-    "Pagamento confirmado!\nForma: " + forma +
+    "Pagamento confirmado!\n" +
+    "Forma: " + forma +
     "\nTroco: " + formatarDinheiro(troco)
   );
 }
 
-carregarDados();
-carregarMensagens();
-atualizarTela();
-
-window.salvarMensagens = function () {
-    const recebido = document.getElementById("mensagemRecebido");
-    const preparo = document.getElementById("mensagemPreparo");
-    const pronto = document.getElementById("mensagemPronto");
-    const aviso = document.getElementById("avisoMensagens");
-
-    if (!recebido || !preparo || !pronto) {
-        alert("Não foi possível localizar os campos das mensagens.");
-        return;
-    }
-
-    const novasMensagens = {
-        recebido: recebido.value,
-        preparo: preparo.value,
-        pronto: pronto.value
-    };
-
-    try {
-        localStorage.setItem(
-            "caramell_mensagens",
-            JSON.stringify(novasMensagens)
-        );
-
-        mensagens = novasMensagens;
-
-        if (aviso) {
-            aviso.textContent = "Mensagens salvas com sucesso!";
-        }
-
-        alert("Mensagens salvas com sucesso!");
-    } catch (erro) {
-        alert("Erro ao salvar as mensagens. Tente novamente.");
-    }
-};
-
-
 // CRONÔMETRO AUTOMÁTICO DA PRODUÇÃO
-setInterval(function () {
-  pedidos.forEach(function (pedido, indice) {
+
+setInterval(function() {
+  pedidos.forEach(function(pedido, indice) {
     if (
       pedido.statusProducao === "Em preparo" &&
       pedido.inicioPreparoEm
@@ -832,32 +752,11 @@ setInterval(function () {
   });
 }, 1000);
 
+// INICIALIZAÇÃO DO APLICATIVO
 
-function salvarTelefonePedido(indice) {
-  const pedido = pedidos[indice];
+carregarDados();
+carregarMensagens();
+atualizarTela();
 
-  if (!pedido) {
-    alert("Pedido não encontrado.");
-    return;
-  }
 
-  const campo = document.getElementById(
-    "telefone-pedido-" + indice
-  );
-
-  const telefone = campo.value.trim();
-
-  if (!telefone) {
-    alert("Informe o WhatsApp do cliente.");
-    campo.focus();
-    return;
-  }
-
-  pedido.telefone = telefone;
-
-  salvarDados();
-  atualizarCaixa();
-
-  alert("Telefone atualizado com sucesso!");
-}
 
