@@ -307,6 +307,41 @@ function enviarPedido() {
 }
 
 
+function gerarComanda(pedido) {
+  let texto = "";
+
+  texto += "\n       CARAMELL\n";
+  texto += "     PEDIDO Nº " + pedido.numero + "\n";
+  texto += "--------------------------------\n";
+  texto += "Cliente: " + pedido.cliente + "\n";
+  texto += "Data: " + pedido.data + "\n";
+  texto += "--------------------------------\n";
+
+  pedido.itens.forEach(item => {
+    texto += item.quantidade + "x " + item.produto + "\n";
+    texto += "Sabor: " + item.sabor + "\n";
+    texto += "Valor: " +
+      formatarDinheiro(item.preco * item.quantidade) + "\n\n";
+  });
+
+  texto += "--------------------------------\n";
+  texto += "TOTAL: " + formatarDinheiro(pedido.total) + "\n";
+  texto += "--------------------------------\n";
+  texto += "\n Obrigado pela preferência!\n\n\n";
+
+  return texto;
+}
+
+function imprimirPedido(pedido) {
+  const texto = gerarComanda(pedido);
+
+  const base64 = btoa(
+    unescape(encodeURIComponent(texto))
+  );
+
+  window.location.href = "rawbt:base64," + base64;
+}
+
 
 
 function salvarDados() {
