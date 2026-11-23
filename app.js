@@ -8,7 +8,9 @@ const CHAVE_MENSAGENS = "caramell_mensagens";
 
 const mensagensPadrao = {
   recebido: "Olá, {cliente}! Boa tarde! 🍿 Seja bem-vindo à Caramell!\n\nRecebemos seu pedido nº {pedido}. Em instantes, um de nossos atendentes dará continuidade ao seu atendimento. ❤️",
+
   preparo: "Olá, {cliente}! 🍿\n\nSeu pedido nº {pedido} já está sendo preparado com muito carinho!\nAvisaremos assim que estiver prontinho. ❤️",
+
   pronto: "Olá, {cliente}! 😍\n\nTemos uma ótima notícia! Seu pedido nº {pedido} da Caramell está prontinho!\n\nPode vir retirar. Agradecemos pela preferência! ❤️"
 };
 
@@ -41,6 +43,7 @@ function entrar() {
   }
 
   atendenteAtual = nome;
+
   document.getElementById("nomeAtendente").textContent = nome;
   document.getElementById("login").hidden = true;
   document.getElementById("caixa").hidden = true;
@@ -64,8 +67,10 @@ function sairCaixa() {
 }
 
 function sair() {
-  if (carrinho.length > 0 &&
-      !confirm("Deseja sair e perder o pedido atual?")) {
+  if (
+    carrinho.length > 0 &&
+    !confirm("Deseja sair e perder o pedido atual?")
+  ) {
     return;
   }
 
@@ -75,6 +80,7 @@ function sair() {
   document.getElementById("atendente").value = "";
   document.getElementById("cliente").value = "";
   document.getElementById("telefone").value = "";
+
   document.getElementById("sistema").hidden = true;
   document.getElementById("login").hidden = false;
 
@@ -116,13 +122,15 @@ function alterarQuantidade(indice, variacao) {
 
 function calcularTotal() {
   return carrinho.reduce(
-    (total, item) => total + item.preco * item.quantidade,
+    (total, item) =>
+      total + item.preco * item.quantidade,
     0
   );
 }
 
 function atualizarTela() {
   const area = document.getElementById("itens");
+
   if (!area) return;
 
   if (carrinho.length === 0) {
@@ -135,8 +143,10 @@ function atualizarTela() {
           ${escapar(item.sabor)}<br>
           ${item.quantidade} x ${formatarDinheiro(item.preco)}
         </div>
+
         <div>
           <strong>${formatarDinheiro(item.preco * item.quantidade)}</strong><br>
+
           <button onclick="alterarQuantidade(${indice}, -1)">−</button>
           <button onclick="alterarQuantidade(${indice}, 1)">+</button>
         </div>
@@ -162,11 +172,15 @@ function enviarPedido() {
     return;
   }
 
-  const cliente = document.getElementById("cliente").value.trim();
-  const telefone = document.getElementById("telefone").value.trim();
+  const cliente =
+    document.getElementById("cliente").value.trim();
+
+  const telefone =
+    document.getElementById("telefone").value.trim();
 
   const maiorNumero = pedidos.reduce(
-    (maior, pedido) => Math.max(maior, Number(pedido.numero) || 0),
+    (maior, pedido) =>
+      Math.max(maior, Number(pedido.numero) || 0),
     0
   );
 
@@ -176,25 +190,32 @@ function enviarPedido() {
     numero: maiorNumero + 1,
     atendente: atendenteAtual,
     cliente: cliente || "Cliente não informado",
-    telefone,
+    telefone: telefone,
+
     itens: carrinho.map(item => ({ ...item })),
+
     total: calcularTotal(),
     data: agora.toLocaleString("pt-BR"),
     criadoEm: agora.toISOString(),
+
     status: "Pendente",
     statusProducao: "Recebido",
+
     inicioPreparoEm: null,
     prontoEm: null,
     entregueEm: null,
+
     pagamento: "",
     recebido: 0,
     troco: 0
   };
 
   pedidos.push(pedido);
+
   salvarDados();
 
   carrinho = [];
+
   document.getElementById("cliente").value = "";
   document.getElementById("telefone").value = "";
 
@@ -208,7 +229,10 @@ function enviarPedido() {
 }
 
 function salvarDados() {
-  localStorage.setItem(CHAVE_PEDIDOS, JSON.stringify(pedidos));
+  localStorage.setItem(
+    CHAVE_PEDIDOS,
+    JSON.stringify(pedidos)
+  );
 }
 
 function carregarDados() {
@@ -224,10 +248,38 @@ function carregarDados() {
     if (!pedido.statusProducao) {
       pedido.statusProducao = "Recebido";
     }
+
     if (pedido.telefone === undefined) {
       pedido.telefone = "";
     }
   });
+}
+
+function atualizarHistorico() {
+  const area = document.getElementById("pedidos");
+
+  if (!area) return;
+
+  if (pedidos.length === 0) {
+    area.innerHTML = "<p>Nenhum pedido registrado ainda.</p>";
+    return;
+  }
+
+  area.innerHTML = pedidos.slice().reverse().map(pedido => `
+    <div class="pedido">
+      <strong>Pedido nº ${pedido.numero}</strong><br>
+
+      Cliente: ${escapar(pedido.cliente)}<br>
+      Atendente: ${escapar(pedido.atendente)}<br>
+      Data: ${escapar(pedido.data)}<br>
+
+      Total:
+      <strong>${formatarDinheiro(pedido.total)}</strong><br>
+
+      Pagamento: ${escapar(pedido.status)}<br>
+      Produção: ${escapar(pedido.statusProducao)}
+    </div>
+  `).join("");
 }
 
 function atualizarHistorico() {
