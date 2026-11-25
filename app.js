@@ -785,6 +785,8 @@ function abrirWhatsApp(indice, etapa) {
   window.open(url, "_blank");
 }
 
+
+
 function finalizarPedido(indice) {
   const pedido = pedidos[indice];
 
@@ -837,7 +839,19 @@ function finalizarPedido(indice) {
     "Forma: " + forma +
     "\nTroco: " + formatarDinheiro(troco)
   );
+
+  // IMPRIMIR APÓS CONFIRMAR PAGAMENTO
+  imprimirPedido(pedido);
 }
+
+
+
+
+
+
+
+
+
 
 // CRONÔMETRO AUTOMÁTICO DA PRODUÇÃO
 
