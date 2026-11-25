@@ -178,28 +178,20 @@ function gerarComanda(pedido) {
   return texto;
 }
 
-function imprimirPedido(pedidoOuIndice) {
-  const pedido = typeof pedidoOuIndice === "number"
-    ? pedidos[pedidoOuIndice]
-    : pedidoOuIndice;
 
-  if (!pedido) {
-    alert("Pedido não encontrado.");
-    return;
-  }
 
-  const texto = gerarComanda(pedido);
 
-  try {
-    const base64 = btoa(unescape(encodeURIComponent(texto)));
+function imprimirPedido(pedido) {
+  alert("Teste de comunicação com RawBT");
 
-    window.location.href = "rawbt:base64," + base64;
-
-  } catch (erro) {
-    alert("Não foi possível preparar a impressão.");
-    console.error(erro);
-  }
+  window.location.href =
+    "intent://print/#Intent;scheme=rawbt;end";
 }
+
+
+
+
+
 
 function atualizarTela() {
   const area = document.getElementById("itens");
