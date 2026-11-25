@@ -176,19 +176,35 @@ function gerarComanda(pedido) {
   texto += "\n\n\n";
 
   return texto;
+
+
+
+
+
+
+async function imprimirPedido(pedido) {
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
+  const texto = gerarComanda(pedido);
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Comanda Caramell",
+        text: texto
+      });
+    } catch (erro) {
+      if (erro.name !== "AbortError") {
+        alert("Erro ao compartilhar: " + erro.message);
+      }
+    }
+  } else {
+    alert("Compartilhamento não disponível neste navegador.");
+  }
 }
-
-
-
-
-function imprimirPedido(pedido) {
-  alert("Teste de comunicação com RawBT");
-
-  window.location.href =
-    "intent://print/#Intent;scheme=rawbt;end";
-}
-
-
 
 
 
