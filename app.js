@@ -310,8 +310,6 @@ function enviarPedido() {
     formatarDinheiro(pedido.total)
   );
 
-  // IMPRESSÃO AUTOMÁTICA
-  imprimirPedido(pedido);
 }
 
 
@@ -335,43 +333,35 @@ function gerarComanda(pedido) {
   texto += "--------------------------------\n";
   texto += "TOTAL: " + formatarDinheiro(pedido.total) + "\n";
   texto += "--------------------------------\n";
-  texto += "\n Obrigado pela preferência!\n\n\n";
-
-  return texto;
-}
+  texto += "\n Obrigado pela 
 
 
 
 
 
 
+
+
+
+  
 function imprimirPedido(pedido) {
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
   const texto = gerarComanda(pedido);
 
   const base64 = btoa(
     unescape(encodeURIComponent(texto))
   );
 
-  const link = document.createElement("a");
+  const url = "rawbt:base64," + base64;
 
-  link.href = "rawbt:base64," + base64;
-  link.target = "_blank";
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  window.open(url, "_blank");
 }
 
-
-
-
-
-
-
-
-
-
-
+  
 function salvarDados() {
   localStorage.setItem(
     CHAVE_PEDIDOS,
