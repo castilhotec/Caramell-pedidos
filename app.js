@@ -324,6 +324,11 @@ function gerarComanda(pedido) {
   return texto;
 }
 
+
+
+
+
+
 function imprimirPedido(pedido) {
   const texto = gerarComanda(pedido);
 
@@ -331,8 +336,23 @@ function imprimirPedido(pedido) {
     unescape(encodeURIComponent(texto))
   );
 
-  window.location.href = "rawbt:base64," + base64;
+  const link = document.createElement("a");
+
+  link.href = "rawbt:base64," + base64;
+  link.target = "_blank";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
+
+
+
+
+
+
+
+
 
 
 
