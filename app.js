@@ -838,10 +838,10 @@ function abrirWhatsApp(indice, etapa) {
     "?text=" + encodeURIComponent(texto);
 
   window.open(url, "_blank");
-}
 
 
 
+  
 function finalizarPedido(indice) {
   const pedido = pedidos[indice];
 
@@ -890,60 +890,13 @@ function finalizarPedido(indice) {
   atualizarCaixa();
   atualizarHistorico();
 
+  const textoComanda = gerarComanda(pedido);
 
-// IMPRIMIR COMANDA NO RAWBT
-const textoComanda = gerarComanda(pedido);
-
-const base64 = btoa(
-  unescape(encodeURIComponent(textoComanda))
-);
-
-window.location.href = "rawbt:base64," + base64;
-  
-
-  // IMPRIMIR APÓS CONFIRMAR PAGAMENTO
-  imprimirPedido(pedido);
-
-  alert(
-    "Pagamento confirmado!\n" +
-    "Forma: " + forma +
-    "\nTroco: " + formatarDinheiro(troco)
+  const base64 = btoa(
+    unescape(encodeURIComponent(textoComanda))
   );
 
-
-
-
-
-
-
-
-
-// CRONÔMETRO AUTOMÁTICO DA PRODUÇÃO
-
-setInterval(function() {
-  pedidos.forEach(function(pedido, indice) {
-    if (
-      pedido.statusProducao === "Em preparo" &&
-      pedido.inicioPreparoEm
-    ) {
-      const visor = document.getElementById(
-        "tempo-preparo-" + indice
-      );
-
-      if (visor) {
-        visor.textContent = formatarDuracao(
-          pedido.inicioPreparoEm
-        );
-      }
-    }
-  });
-}, 1000);
-
-// INICIALIZAÇÃO DO APLICATIVO
-
-carregarDados();
-carregarMensagens();
-atualizarTela();
-
+  window.location.href = "rawbt:base64," + base64;
+}
 
 
