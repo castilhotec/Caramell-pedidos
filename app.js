@@ -418,14 +418,24 @@ function atualizarCaixa() {
     let mensagemPreparo = "";
     let mensagemPronto = "";
 
-    if (pedido.statusProducao === "Recebido") {
-      producao = `
-        <p><strong>Produção:</strong> Pedido recebido</p>
 
-        <button onclick="iniciarPreparo(${numeroReal})">
-          Iniciar preparo
-        </button>
-      `;
+if (pedido.status !== "Pago") {
+  producao = `
+    <p><strong>Produção:</strong> Aguardando pagamento</p>
+    <p>O preparo será liberado após a confirmação do pagamento.</p>
+  `;
+
+} else if (pedido.statusProducao === "Recebido") {
+  producao = `
+    <p><strong>Produção:</strong> Aguardando início do preparo</p>
+
+    <button onclick="iniciarPreparo(${numeroReal})">
+      Iniciar preparo
+    </button>
+  `;
+
+
+    
 
       mensagemRecebido = `
         <button onclick="abrirWhatsApp(${numeroReal}, 'recebido')">
