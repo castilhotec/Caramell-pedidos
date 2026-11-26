@@ -176,6 +176,7 @@ function gerarComanda(pedido) {
   texto += "\n\n\n";
 
   return texto;
+}
 
 
 
