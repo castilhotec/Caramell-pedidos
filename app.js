@@ -837,13 +837,12 @@ function abrirWhatsApp(indice, etapa) {
     "https://wa.me/" + telefone +
     "?text=" + encodeURIComponent(texto);
 
-  window.open(url, "_blank");
+    window.open(url, "_blank");
+} 
+}
 
-
-
-  
+// FINALIZAÇÃO DO PAGAMENTO
 function finalizarPedido(indice) {
-  const pedido = pedidos[indice];
 
   if (!pedido || pedido.status !== "Pendente") return;
 
@@ -899,4 +898,6 @@ function finalizarPedido(indice) {
   window.location.href = "rawbt:base64," + base64;
 }
 
-
+// INICIALIZAÇÃO DO SISTEMA
+carregarDados();
+atualizarTela();
