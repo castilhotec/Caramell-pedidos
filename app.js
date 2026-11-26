@@ -1129,3 +1129,201 @@ if (document.readyState === "loading") {
 
 
 
+// ======================================================
+// CARAMELL FINANCEIRO
+// PARTE 1 - ESTRUTURA E ABERTURA DO CAIXA
+// ======================================================
+
+const CHAVE_CAIXAS = "caramell_caixas_v1";
+
+let caixasCaramell = [];
+let caixaAtual = null;
+
+// ------------------------------------------------------
+// CARREGAR CAIXAS SALVOS
+// ------------------------------------------------------
+
+function carregarCaixas() {
+  try {
+    const dados = JSON.parse(
+      localStorage.getItem(CHAVE_CAIXAS) || "[]"
+    );
+
+    caixasCaramell = Array.isArray(dados) ? dados : [];
+
+  } catch (erro) {
+    caixasCaramell = [];
+    alert("Erro ao carregar os dados financeiros.");
+  }
+
+  caixaAtual = caixasCaramell.find(
+    caixa => caixa.status === "Aberto"
+  ) || null;
+}
+
+// ------------------------------------------------------
+// SALVAR CAIXAS
+// ------------------------------------------------------
+
+function salvarCaixas() {
+  try {
+    localStorage.setItem(
+      CHAVE_CAIXAS,
+      JSON.stringify(caixasCaramell)
+    );
+
+    return true;
+
+  } catch (erro) {
+    alert("Erro ao salvar o caixa: " + erro.message);
+    return false;
+  }
+}
+
+// ------------------------------------------------------
+// DATA E IDENTIFICAÇÃO DO CAIXA
+// ------------------------------------------------------
+
+function dataAtualCaixa() {
+  const agora = new Date();
+
+  const ano = agora.getFullYear();
+  const mes = String(agora.getMonth() + 1).padStart(2, "0");
+  const dia = String(agora.getDate()).padStart(2, "0");
+
+  return `${ano}-${mes}-${dia}`;
+}
+
+// ------------------------------------------------------
+// ABERTURA DO CAIXA
+// ------------------------------------------------------
+
+function abrirCaixaFinanceiro() {
+  if (caixaAtual && caixaAtual.status === "Aberto") {
+    alert("Já existe um caixa aberto.");
+    atualizarPainelFinanceiro();
+    return;
+  }
+
+  const campo = document.getElementById("saldoInicialCaixa");
+
+  if (!campo) {
+    alert("Campo de saldo inicial não encontrado.");
+    return;
+  }
+
+  const valor = Number(
+    String(campo.value || "").replace(",", ".")
+  );
+
+  if (!Number.isFinite(valor) || valor < 0) {
+    alert("Informe um saldo inicial válido.");
+    campo.focus();
+    return;
+  }
+
+  const agora = new Date();
+
+  const novoCaixa = {
+    id: "CX-" + agora.getTime(),
+    data: dataAtualCaixa(),
+    aberturaEm: agora.toISOString(),
+    fechamentoEm: null,
+    responsavel: atendenteAtual || "Operador do caixa",
+    saldoInicial: valor,
+    saldoContado: null,
+    diferenca: null,
+    status: "Aberto",
+    movimentacoes: []
+  };
+
+  caixasCaramell.push(novoCaixa);
+
+  if (!salvarCaixas()) {
+    caixasCaramell.pop();
+    return;
+  }
+
+  caixaAtual = novoCaixa;
+
+  alert(
+    "Caixa aberto com sucesso!\n" +
+    "Saldo inicial: " + formatarDinheiro(valor)
+  );
+
+  atualizarPainelFinanceiro();
+}
+
+// ------------------------------------------------------
+// SITUAÇÃO DO CAIXA
+// ------------------------------------------------------
+
+function atualizarPainelFinanceiro() {
+  const area = document.getElementById("painelFinanceiro");
+
+  if (!area) return;
+
+  if (!caixaAtual) {
+    area.innerHTML = `
+      <h3>🔐 Abertura do caixa</h3>
+
+      <p>Informe quanto existe em dinheiro na gaveta.</p>
+
+      <label>Saldo inicial em dinheiro</label>
+
+      <input
+        id="saldoInicialCaixa"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Ex.: 100,00"
+      >
+
+      <button
+        type="button"
+        onclick="abrirCaixaFinanceiro()"
+      >
+        Abrir caixa
+      </button>
+
+      <p><strong>Status:</strong> Caixa fechado</p>
+    `;
+
+    return;
+  }
+
+  area.innerHTML = `
+    <h3>🟢 Caixa aberto</h3>
+
+    <p>
+      <strong>Responsável:</strong>
+      ${escapar(caixaAtual.responsavel)}
+    </p>
+
+    <p>
+      <strong>Abertura:</strong>
+      ${new Date(caixaAtual.aberturaEm).toLocaleString("pt-BR")}
+    </p>
+
+    <p>
+      <strong>Saldo inicial:</strong>
+      ${formatarDinheiro(caixaAtual.saldoInicial)}
+    </p>
+
+    <p>O controle de movimentações será ativado na próxima etapa.</p>
+  `;
+}
+
+// ------------------------------------------------------
+// INICIALIZAR MÓDULO FINANCEIRO
+// ------------------------------------------------------
+
+function iniciarFinanceiroCaramell() {
+  carregarCaixas();
+  atualizarPainelFinanceiro();
+}
+
+// ======================================================
+// FIM DA PARTE 1
+// ======================================================
+
