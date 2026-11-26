@@ -183,29 +183,34 @@ function gerarComanda(pedido) {
 
 
 
+
 async function imprimirPedido(pedido) {
   if (!pedido) {
     alert("Pedido não encontrado.");
     return;
   }
 
-  const texto = gerarComanda(pedido);
+  try {
+    const texto = gerarComanda(pedido);
 
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "Comanda Caramell",
-        text: texto
-      });
-    } catch (erro) {
-      if (erro.name !== "AbortError") {
-        alert("Erro ao compartilhar: " + erro.message);
-      }
-    }
-  } else {
-    alert("Compartilhamento não disponível neste navegador.");
+    const base64 = btoa(
+      unescape(encodeURIComponent(texto))
+    );
+
+    const url = "rawbt:base64," + base64;
+
+    window.location.href = url;
+
+  } catch (erro) {
+    alert("Erro ao preparar impressão: " + erro.message);
   }
 }
+
+
+
+
+
+
 
 
 
