@@ -891,6 +891,15 @@ function finalizarPedido(indice) {
   atualizarHistorico();
 
 
+// IMPRIMIR COMANDA NO RAWBT
+const textoComanda = gerarComanda(pedido);
+
+const base64 = btoa(
+  unescape(encodeURIComponent(textoComanda))
+);
+
+window.location.href = "rawbt:base64," + base64;
+  
 
   // IMPRIMIR APÓS CONFIRMAR PAGAMENTO
   imprimirPedido(pedido);
