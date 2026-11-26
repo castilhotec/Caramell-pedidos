@@ -52,6 +52,7 @@ function entrar() {
   atualizarTela();
 }
 
+
 function entrarComoCaixa() {
   document.getElementById("login").hidden = true;
   document.getElementById("sistema").hidden = true;
@@ -59,6 +60,17 @@ function entrarComoCaixa() {
 
   carregarCamposMensagens();
   atualizarCaixa();
+
+  if (!document.getElementById("botaoTesteRawBT")) {
+    const botao = document.createElement("button");
+
+    botao.id = "botaoTesteRawBT";
+    botao.type = "button";
+    botao.textContent = "TESTAR IMPRESSORA";
+    botao.onclick = testarImpressaoRawBT;
+
+    document.getElementById("pedidosCaixa").before(botao);
+  }
 }
 
 
