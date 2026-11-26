@@ -61,6 +61,21 @@ function entrarComoCaixa() {
   atualizarCaixa();
 }
 
+
+function testarImpressaoRawBT() {
+  const texto =
+    "TESTE DE IMPRESSAO\n" +
+    "CARAMELL\n" +
+    "Impressora conectada!\n\n\n";
+
+  const base64 = btoa(
+    unescape(encodeURIComponent(texto))
+  );
+
+  window.location.href = "rawbt:base64," + base64;
+}
+
+
 function sairCaixa() {
   document.getElementById("caixa").hidden = true;
   document.getElementById("login").hidden = false;
