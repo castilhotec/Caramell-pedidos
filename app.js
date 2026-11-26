@@ -1325,5 +1325,1102 @@ function iniciarFinanceiroCaramell() {
 
 // ======================================================
 // FIM DA PARTE 1
+
+
+
+
+// ======================================================
+// CARAMELL FINANCEIRO
+// PARTE 2 - PAINEL E MOVIMENTAÇÕES MANUAIS
 // ======================================================
 
+// ------------------------------------------------------
+// CRIAR ÁREA FINANCEIRA NO PAINEL DO CAIXA
+// ------------------------------------------------------
+
+function instalarPainelFinanceiro() {
+  if (document.getElementById("painelFinanceiro")) return;
+
+  const pedidosArea = document.getElementById("pedidosCaixa");
+
+  if (!pedidosArea) return;
+
+  const painel = document.createElement("div");
+
+  painel.id = "painelFinanceiro";
+  painel.style.cssText =
+    "border:1px solid #d8c5b9;" +
+    "border-radius:12px;" +
+    "padding:15px;" +
+    "margin:15px 0;" +
+    "background:#fff8f1;";
+
+  pedidosArea.before(painel);
+
+  painel.innerHTML = `
+    <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
+  `;
+}
+
+// ------------------------------------------------------
+// SOMAR MOVIMENTAÇÕES DE DINHEIRO
+// ------------------------------------------------------
+
+function calcularSaldoFisicoCaixa() {
+  if (!caixaAtual) return 0;
+
+  let saldo = Number(caixaAtual.saldoInicial) || 0;
+
+  (caixaAtual.movimentacoes || []).forEach(movimento => {
+    if (movimento.tipo === "Entrada") {
+      saldo += Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Retirada") {
+      saldo -= Number(movimento.valor) || 0;
+    }
+
+    // Vendas em dinheiro serão integradas na Parte 3.
+  });
+
+  return saldo;
+}
+
+// ------------------------------------------------------
+// REGISTRAR ENTRADA OU RETIRADA
+// ------------------------------------------------------
+
+function registrarMovimentacaoFinanceira(tipo) {
+  if (!caixaAtual || caixaAtual.status !== "Aberto") {
+    alert("Abra o caixa antes de registrar movimentações.");
+    return;
+  }
+
+  const campoValor = document.getElementById("valorMovimentacao");
+  const campoDescricao = document.getElementById("descricaoMovimentacao");
+
+  if (!campoValor || !campoDescricao) return;
+
+  const valor = Number(
+    String(campoValor.value || "").replace(",", ".")
+  );
+
+  const descricao = campoDescricao.value.trim();
+
+  if (!Number.isFinite(valor) || valor <= 0) {
+    alert("Informe um valor maior que zero.");
+    campoValor.focus();
+    return;
+  }
+
+  if (!descricao) {
+    alert("Informe a descrição da movimentação.");
+    campoDescricao.focus();
+    return;
+  }
+
+  if (
+    tipo === "Retirada" &&
+    valor > calcularSaldoFisicoCaixa()
+  ) {
+    alert("O valor da retirada é maior que o dinheiro disponível na gaveta.");
+    return;
+  }
+
+  const movimento = {
+    id: "MOV-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    tipo,
+    categoria: "Movimentação manual",
+    descricao,
+    valor,
+    data: new Date().toISOString()
+  };
+
+  caixaAtual.movimentacoes.push(movimento);
+
+  if (!salvarCaixas()) {
+    caixaAtual.movimentacoes.pop();
+    return;
+  }
+
+  campoValor.value = "";
+  campoDescricao.value = "";
+
+  atualizarPainelFinanceiro();
+
+  alert(
+    tipo + " registrada com sucesso!\n" +
+    "Valor: " + formatarDinheiro(valor)
+  );
+}
+
+// ------------------------------------------------------
+// ATUALIZAR PAINEL FINANCEIRO
+// ------------------------------------------------------
+
+function atualizarPainelFinanceiro() {
+  const area = document.getElementById("painelFinanceiro");
+
+  if (!area) return;
+
+  if (!caixaAtual) {
+    area.innerHTML = `
+      <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
+
+      <h3>🔐 Abertura do caixa</h3>
+
+      <p>Informe quanto existe em dinheiro na gaveta.</p>
+
+      <label>Saldo inicial em dinheiro</label>
+
+      <input
+        id="saldoInicialCaixa"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Ex.: 100,00"
+      >
+
+      <button type="button" onclick="abrirCaixaFinanceiro()">
+        Abrir caixa
+      </button>
+
+      <p><strong>Status:</strong> Caixa fechado</p>
+    `;
+
+    return;
+  }
+
+  const saldo = calcularSaldoFisicoCaixa();
+
+  const historico = (caixaAtual.movimentacoes || [])
+    .slice()
+    .reverse()
+    .map(movimento => `
+      <div class="pedido">
+        <strong>${escapar(movimento.tipo)}</strong>
+        <p>${escapar(movimento.descricao)}</p>
+        <p>${formatarDinheiro(movimento.valor)}</p>
+        <small>
+          ${new Date(movimento.data).toLocaleString("pt-BR")}
+        </small>
+      </div>
+    `).join("");
+
+  area.innerHTML = `
+    <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
+
+    <h3>🟢 Caixa aberto</h3>
+
+    <p>
+      <strong>Responsável:</strong>
+      ${escapar(caixaAtual.responsavel)}
+    </p>
+
+    <p>
+      <strong>Abertura:</strong>
+      ${new Date(caixaAtual.aberturaEm).toLocaleString("pt-BR")}
+    </p>
+
+    <p>
+      <strong>Saldo inicial:</strong>
+      ${formatarDinheiro(caixaAtual.saldoInicial)}
+    </p>
+
+    <div style="
+      background:#713b28;
+      color:white;
+      padding:15px;
+      border-radius:10px;
+      margin:15px 0;
+    ">
+      <p>Dinheiro esperado na gaveta</p>
+      <h2>${formatarDinheiro(saldo)}</h2>
+    </div>
+
+    <hr>
+
+    <h3>➕ Registrar entrada ou retirada</h3>
+
+    <label>Valor</label>
+
+    <input
+      id="valorMovimentacao"
+      type="number"
+      min="0.01"
+      step="0.01"
+      placeholder="Ex.: 50,00"
+    >
+
+    <label>Descrição</label>
+
+    <input
+      id="descricaoMovimentacao"
+      type="text"
+      placeholder="Ex.: Reposição de dinheiro"
+    >
+
+    <button
+      type="button"
+      onclick="registrarMovimentacaoFinanceira('Entrada')"
+    >
+      Registrar entrada
+    </button>
+
+    <button
+      type="button"
+      class="botao-secundario"
+      onclick="registrarMovimentacaoFinanceira('Retirada')"
+    >
+      Registrar retirada
+    </button>
+
+    <hr>
+
+    <h3>📋 Histórico de movimentações</h3>
+
+    ${historico || "<p>Nenhuma movimentação registrada.</p>"}
+  `;
+}
+
+// ------------------------------------------------------
+// CONECTAR PAINEL AO LOGIN DO CAIXA
+// ------------------------------------------------------
+
+const entrarComoCaixaOriginal = entrarComoCaixa;
+
+entrarComoCaixa = function() {
+  entrarComoCaixaOriginal();
+
+  instalarPainelFinanceiro();
+  iniciarFinanceiroCaramell();
+};
+
+// ======================================================
+// FIM DA PARTE 2
+// ======================================================
+
+// ======================================================
+
+
+
+// ======================================================
+// CARAMELL FINANCEIRO
+// PARTE 3 - PAGAMENTOS, JUROS E TAXAS
+// ======================================================
+
+// ------------------------------------------------------
+// CONVERTER VALORES
+// ------------------------------------------------------
+
+function valorFinanceiro(campoId) {
+  const campo = document.getElementById(campoId);
+
+  if (!campo) return 0;
+
+  return Number(
+    String(campo.value || "0").replace(",", ".")
+  );
+}
+
+// ------------------------------------------------------
+// INSERIR CAMPOS DE CARTÃO NOS PEDIDOS
+// ------------------------------------------------------
+
+function instalarCamposPagamento() {
+  pedidos.forEach((pedido, indice) => {
+    if (pedido.status !== "Pendente") return;
+
+    const forma = document.getElementById(
+      "pagamento-" + indice
+    );
+
+    if (!forma) return;
+
+    forma.onchange = function() {
+      atualizarCamposPagamento(indice);
+    };
+
+    if (document.getElementById("dados-cartao-" + indice)) {
+      return;
+    }
+
+    forma.insertAdjacentHTML("afterend", `
+      <div id="dados-cartao-${indice}">
+
+        <div id="parcelamento-area-${indice}" hidden>
+          <label>Quantidade de parcelas</label>
+
+          <select id="parcelas-${indice}">
+            <option value="1">À vista (1x)</option>
+            <option value="2">2 vezes</option>
+            <option value="3">3 vezes</option>
+            <option value="4">4 vezes</option>
+            <option value="5">5 vezes</option>
+            <option value="6">6 vezes</option>
+            <option value="7">7 vezes</option>
+            <option value="8">8 vezes</option>
+            <option value="9">9 vezes</option>
+            <option value="10">10 vezes</option>
+            <option value="11">11 vezes</option>
+            <option value="12">12 vezes</option>
+          </select>
+        </div>
+
+        <div id="juros-area-${indice}" hidden>
+          <label>Juros cobrados do cliente (R$)</label>
+
+          <input
+            id="juros-${indice}"
+            type="number"
+            min="0"
+            step="0.01"
+            value="0"
+            placeholder="Ex.: 5,00"
+            oninput="atualizarResumoPagamento(${indice})"
+          >
+        </div>
+
+        <div id="taxa-area-${indice}" hidden>
+          <label>Taxa da operadora (R$)</label>
+
+          <input
+            id="taxa-${indice}"
+            type="number"
+            min="0"
+            step="0.01"
+            value="0"
+            placeholder="Ex.: 3,00"
+            oninput="atualizarResumoPagamento(${indice})"
+          >
+        </div>
+
+        <div
+          id="resumo-pagamento-${indice}"
+          style="background:#fff8f1;padding:10px;border-radius:8px;margin:10px 0;"
+        ></div>
+
+      </div>
+    `);
+
+    atualizarCamposPagamento(indice);
+  });
+}
+
+// ------------------------------------------------------
+// MOSTRAR CAMPOS CONFORME A FORMA DE PAGAMENTO
+// ------------------------------------------------------
+
+function atualizarCamposPagamento(indice) {
+  const forma = document.getElementById(
+    "pagamento-" + indice
+  );
+
+  if (!forma) return;
+
+  const metodo = forma.value;
+
+  const parcelamento = document.getElementById(
+    "parcelamento-area-" + indice
+  );
+
+  const juros = document.getElementById(
+    "juros-area-" + indice
+  );
+
+  const taxa = document.getElementById(
+    "taxa-area-" + indice
+  );
+
+  if (!parcelamento || !juros || !taxa) return;
+
+  parcelamento.hidden = metodo !== "Crédito";
+  juros.hidden = metodo !== "Crédito";
+  taxa.hidden = metodo !== "Crédito" && metodo !== "Débito";
+
+  atualizarResumoPagamento(indice);
+}
+
+// ------------------------------------------------------
+// RESUMO DO PAGAMENTO
+// ------------------------------------------------------
+
+function atualizarResumoPagamento(indice) {
+  const pedido = pedidos[indice];
+
+  if (!pedido) return;
+
+  const forma = document.getElementById(
+    "pagamento-" + indice
+  );
+
+  const resumo = document.getElementById(
+    "resumo-pagamento-" + indice
+  );
+
+  if (!forma || !resumo) return;
+
+  const metodo = forma.value;
+
+  const juros = metodo === "Crédito"
+    ? valorFinanceiro("juros-" + indice)
+    : 0;
+
+  const taxa = (
+    metodo === "Crédito" || metodo === "Débito"
+  )
+    ? valorFinanceiro("taxa-" + indice)
+    : 0;
+
+  const totalCobrado = Number(pedido.total) + juros;
+  const liquido = totalCobrado - taxa;
+
+  resumo.innerHTML = `
+    <p>Produtos: <strong>${formatarDinheiro(pedido.total)}</strong></p>
+    <p>Juros: <strong>${formatarDinheiro(juros)}</strong></p>
+    <p>Total cobrado: <strong>${formatarDinheiro(totalCobrado)}</strong></p>
+    <p>Taxa da operadora: <strong>${formatarDinheiro(taxa)}</strong></p>
+    <p>Valor líquido previsto: <strong>${formatarDinheiro(liquido)}</strong></p>
+  `;
+}
+
+// ------------------------------------------------------
+// ATUALIZAR O SALDO FÍSICO DA GAVETA
+// ------------------------------------------------------
+
+function calcularSaldoFisicoCaixa() {
+  if (!caixaAtual) return 0;
+
+  let saldo = Number(caixaAtual.saldoInicial) || 0;
+
+  (caixaAtual.movimentacoes || []).forEach(movimento => {
+
+    if (movimento.tipo === "Entrada") {
+      saldo += Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Retirada") {
+      saldo -= Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Venda") {
+      saldo += Number(movimento.valorDinheiroGaveta) || 0;
+    }
+
+  });
+
+  return saldo;
+}
+
+// ------------------------------------------------------
+// ATUALIZAR A TELA DE PAGAMENTOS AUTOMATICAMENTE
+// ------------------------------------------------------
+
+const atualizarCaixaParte2 = atualizarCaixa;
+
+atualizarCaixa = function() {
+  atualizarCaixaParte2();
+  instalarCamposPagamento();
+};
+
+// ------------------------------------------------------
+// CONFIRMAR PAGAMENTO E LANÇAR NO FINANCEIRO
+// ------------------------------------------------------
+
+function finalizarPedido(indice) {
+  const pedido = pedidos[indice];
+
+  if (!pedido) {
+    alert("Pedido não encontrado.");
+    return;
+  }
+
+  if (pedido.status === "Pago") {
+    alert("Este pedido já foi pago.");
+    return;
+  }
+
+  if (!caixaAtual || caixaAtual.status !== "Aberto") {
+    alert("Abra o caixa financeiro antes de confirmar pagamentos.");
+    return;
+  }
+
+  const campoForma = document.getElementById(
+    "pagamento-" + indice
+  );
+
+  const campoRecebido = document.getElementById(
+    "recebido-" + indice
+  );
+
+  if (!campoForma) {
+    alert("Forma de pagamento não encontrada.");
+    return;
+  }
+
+  const forma = campoForma.value;
+
+  let juros = 0;
+  let taxa = 0;
+  let parcelas = 1;
+  let recebido = 0;
+  let troco = 0;
+
+  if (forma === "Dinheiro") {
+    if (!campoRecebido || campoRecebido.value.trim() === "") {
+      alert("Informe o valor recebido em dinheiro.");
+      campoRecebido?.focus();
+      return;
+    }
+
+    recebido = Number(
+      String(campoRecebido.value).replace(",", ".")
+    );
+
+    if (!Number.isFinite(recebido) || recebido < pedido.total) {
+      alert("O valor recebido não pode ser menor que o total.");
+      campoRecebido.focus();
+      return;
+    }
+
+    troco = recebido - Number(pedido.total);
+
+  } else if (forma === "Crédito") {
+
+    juros = valorFinanceiro("juros-" + indice);
+    taxa = valorFinanceiro("taxa-" + indice);
+
+    const campoParcelas = document.getElementById(
+      "parcelas-" + indice
+    );
+
+    parcelas = Number(campoParcelas?.value || 1);
+
+  } else if (forma === "Débito") {
+
+    taxa = valorFinanceiro("taxa-" + indice);
+
+  }
+
+  if (
+    !Number.isFinite(juros) ||
+    !Number.isFinite(taxa) ||
+    juros < 0 ||
+    taxa < 0
+  ) {
+    alert("Confira os valores de juros e taxa.");
+    return;
+  }
+
+  if (forma !== "Crédito" && juros !== 0) {
+    alert("Juros de parcelamento são registrados somente no crédito.");
+    return;
+  }
+
+  if (
+    forma === "Crédito" &&
+    (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 12)
+  ) {
+    alert("Informe uma quantidade válida de parcelas.");
+    return;
+  }
+
+  const totalCobrado = Number(pedido.total) + juros;
+  const valorLiquido = totalCobrado - taxa;
+
+  if (taxa > totalCobrado) {
+    alert("A taxa não pode ser maior que o valor cobrado.");
+    return;
+  }
+
+  if (forma !== "Dinheiro") {
+    recebido = totalCobrado;
+  }
+
+  const movimento = {
+    id: "VENDA-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    tipo: "Venda",
+    categoria: "Venda de pedido",
+    pedidoNumero: pedido.numero,
+    cliente: pedido.cliente,
+    formaPagamento: forma,
+    valorProdutos: Number(pedido.total),
+    juros,
+    parcelas,
+    totalCobrado,
+    taxaOperadora: taxa,
+    valorLiquido,
+    valorDinheiroGaveta: forma === "Dinheiro"
+      ? Number(pedido.total)
+      : 0,
+    data: new Date().toISOString()
+  };
+
+  pedido.pagamento = forma;
+  pedido.recebido = recebido;
+  pedido.troco = troco;
+  pedido.juros = juros;
+  pedido.parcelas = parcelas;
+  pedido.taxaOperadora = taxa;
+  pedido.totalCobrado = totalCobrado;
+  pedido.valorLiquido = valorLiquido;
+  pedido.status = "Pago";
+  pedido.movimentoCaixaId = movimento.id;
+
+  if (!pedido.statusProducao) {
+    pedido.statusProducao = "Recebido";
+  }
+
+  caixaAtual.movimentacoes.push(movimento);
+
+  if (!salvarCaixas()) {
+    caixaAtual.movimentacoes.pop();
+
+    pedido.status = "Pendente";
+    pedido.pagamento = "";
+    pedido.movimentoCaixaId = null;
+
+    alert("Não foi possível salvar o movimento financeiro.");
+    return;
+  }
+
+  salvarDados();
+
+  atualizarCaixa();
+  atualizarHistorico();
+  atualizarPainelFinanceiro();
+
+  alert(
+    "Pagamento confirmado!\n\n" +
+    "Forma: " + forma +
+    "\nProdutos: " + formatarDinheiro(pedido.total) +
+    "\nJuros: " + formatarDinheiro(juros) +
+    "\nTotal cobrado: " + formatarDinheiro(totalCobrado) +
+    "\nTaxa: " + formatarDinheiro(taxa) +
+    "\nLíquido previsto: " + formatarDinheiro(valorLiquido) +
+    "\nTroco: " + formatarDinheiro(troco)
+  );
+
+  imprimirPedido(pedido);
+}
+
+// ======================================================
+// FIM DA PARTE 3
+// ======================================================
+
+
+
+
+// ======================================================
+// CARAMELL FINANCEIRO
+// PARTE 4 - FECHAMENTO E RELATÓRIOS
+// ======================================================
+
+// ------------------------------------------------------
+// CALCULAR SALDO FÍSICO DE QUALQUER CAIXA
+// ------------------------------------------------------
+
+function calcularSaldoDoCaixa(caixa) {
+  if (!caixa) return 0;
+
+  let saldo = Number(caixa.saldoInicial) || 0;
+
+  (caixa.movimentacoes || []).forEach(movimento => {
+    if (movimento.tipo === "Entrada") {
+      saldo += Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Retirada") {
+      saldo -= Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Venda") {
+      saldo += Number(movimento.valorDinheiroGaveta) || 0;
+    }
+  });
+
+  return saldo;
+}
+
+// ------------------------------------------------------
+// RESUMO FINANCEIRO DE UM CAIXA
+// ------------------------------------------------------
+
+function resumoFinanceiroCaixa(caixa) {
+  const movimentos = caixa.movimentacoes || [];
+
+  const vendas = movimentos.filter(
+    movimento => movimento.tipo === "Venda"
+  );
+
+  const resumo = {
+    produtos: 0,
+    juros: 0,
+    totalCobrado: 0,
+    taxas: 0,
+    liquido: 0,
+    dinheiro: 0,
+    pix: 0,
+    debito: 0,
+    credito: 0,
+    parcelas: {},
+    entradas: 0,
+    retiradas: 0,
+    saldoFisico: calcularSaldoDoCaixa(caixa)
+  };
+
+  vendas.forEach(venda => {
+    resumo.produtos += Number(venda.valorProdutos) || 0;
+    resumo.juros += Number(venda.juros) || 0;
+    resumo.totalCobrado += Number(venda.totalCobrado) || 0;
+    resumo.taxas += Number(venda.taxaOperadora) || 0;
+    resumo.liquido += Number(venda.valorLiquido) || 0;
+
+    if (venda.formaPagamento === "Dinheiro") {
+      resumo.dinheiro += Number(venda.totalCobrado) || 0;
+    }
+
+    if (venda.formaPagamento === "Pix") {
+      resumo.pix += Number(venda.valorLiquido) || 0;
+    }
+
+    if (venda.formaPagamento === "Débito") {
+      resumo.debito += Number(venda.valorLiquido) || 0;
+    }
+
+    if (venda.formaPagamento === "Crédito") {
+      resumo.credito += Number(venda.valorLiquido) || 0;
+
+      const quantidade = Number(venda.parcelas) || 1;
+
+      resumo.parcelas[quantidade] =
+        (resumo.parcelas[quantidade] || 0) + 1;
+    }
+  });
+
+  movimentos.forEach(movimento => {
+    if (movimento.tipo === "Entrada") {
+      resumo.entradas += Number(movimento.valor) || 0;
+    }
+
+    if (movimento.tipo === "Retirada") {
+      resumo.retiradas += Number(movimento.valor) || 0;
+    }
+  });
+
+  return resumo;
+}
+
+// ------------------------------------------------------
+// FECHAR CAIXA
+// ------------------------------------------------------
+
+function fecharCaixaFinanceiro() {
+  if (!caixaAtual || caixaAtual.status !== "Aberto") {
+    alert("Não existe um caixa aberto.");
+    return;
+  }
+
+  const campo = document.getElementById("valorContadoCaixa");
+
+  if (!campo || campo.value.trim() === "") {
+    alert("Informe quanto dinheiro foi contado na gaveta.");
+    campo?.focus();
+    return;
+  }
+
+  const contado = Number(
+    String(campo.value).replace(",", ".")
+  );
+
+  if (!Number.isFinite(contado) || contado < 0) {
+    alert("Informe um valor contado válido.");
+    campo.focus();
+    return;
+  }
+
+  const esperado = calcularSaldoFisicoCaixa();
+  const diferenca = contado - esperado;
+
+  const confirmacao = confirm(
+    "CONFIRMAR FECHAMENTO DO CAIXA?\n\n" +
+    "Saldo esperado: " + formatarDinheiro(esperado) + "\n" +
+    "Dinheiro contado: " + formatarDinheiro(contado) + "\n" +
+    "Diferença: " + formatarDinheiro(diferenca) + "\n\n" +
+    "Deseja realmente fechar?"
+  );
+
+  if (!confirmacao) return;
+
+  const caixaFechado = caixaAtual;
+
+  caixaFechado.fechamentoEm = new Date().toISOString();
+  caixaFechado.saldoEsperado = esperado;
+  caixaFechado.saldoContado = contado;
+  caixaFechado.diferenca = diferenca;
+  caixaFechado.status = "Fechado";
+
+  caixaFechado.resumo = resumoFinanceiroCaixa(caixaFechado);
+
+  if (!salvarCaixas()) {
+    caixaFechado.status = "Aberto";
+    caixaFechado.fechamentoEm = null;
+    caixaFechado.saldoContado = null;
+    caixaFechado.saldoEsperado = null;
+    caixaFechado.diferenca = null;
+    delete caixaFechado.resumo;
+    return;
+  }
+
+  caixaAtual = null;
+
+  alert(
+    "CAIXA FECHADO COM SUCESSO!\n\n" +
+    "Saldo esperado: " + formatarDinheiro(esperado) + "\n" +
+    "Valor contado: " + formatarDinheiro(contado) + "\n" +
+    "Diferença: " + formatarDinheiro(diferenca)
+  );
+
+  atualizarPainelFinanceiro();
+}
+
+// ------------------------------------------------------
+// RELATÓRIO DE UM CAIXA
+// ------------------------------------------------------
+
+function gerarRelatorioCaixa(caixa) {
+  const resumo = resumoFinanceiroCaixa(caixa);
+
+  const parcelas = Object.keys(resumo.parcelas)
+    .sort((a, b) => Number(a) - Number(b))
+    .map(quantidade => `
+      <p>
+        ${quantidade}x:
+        ${resumo.parcelas[quantidade]} venda(s)
+      </p>
+    `).join("");
+
+  return `
+    <div class="pedido">
+
+      <h3>Resumo financeiro</h3>
+
+      <p>Produtos: <strong>${formatarDinheiro(resumo.produtos)}</strong></p>
+
+      <p>Juros cobrados: <strong>${formatarDinheiro(resumo.juros)}</strong></p>
+
+      <p>Total cobrado: <strong>${formatarDinheiro(resumo.totalCobrado)}</strong></p>
+
+      <p>Taxas da operadora: <strong>${formatarDinheiro(resumo.taxas)}</strong></p>
+
+      <p>Valor líquido previsto: <strong>${formatarDinheiro(resumo.liquido)}</strong></p>
+
+      <hr>
+
+      <h4>Vendas por pagamento</h4>
+
+      <p>Dinheiro: ${formatarDinheiro(resumo.dinheiro)}</p>
+      <p>Pix: ${formatarDinheiro(resumo.pix)}</p>
+      <p>Débito líquido: ${formatarDinheiro(resumo.debito)}</p>
+      <p>Crédito líquido: ${formatarDinheiro(resumo.credito)}</p>
+
+      ${parcelas ? "<h4>Parcelamentos</h4>" + parcelas : ""}
+
+      <hr>
+
+      <h4>Movimentações de dinheiro</h4>
+
+      <p>Entradas adicionais: ${formatarDinheiro(resumo.entradas)}</p>
+      <p>Retiradas: ${formatarDinheiro(resumo.retiradas)}</p>
+      <p>Saldo físico esperado: <strong>${formatarDinheiro(resumo.saldoFisico)}</strong></p>
+
+      ${caixa.status === "Fechado" ? `
+        <hr>
+        <h4>Conferência do fechamento</h4>
+
+        <p>Saldo esperado: ${formatarDinheiro(caixa.saldoEsperado)}</p>
+        <p>Valor contado: ${formatarDinheiro(caixa.saldoContado)}</p>
+        <p>Diferença:
+          <strong>${formatarDinheiro(caixa.diferenca)}</strong>
+        </p>
+      ` : ""}
+
+    </div>
+  `;
+}
+
+// ------------------------------------------------------
+// HISTÓRICO DOS CAIXAS FECHADOS
+// ------------------------------------------------------
+
+function gerarHistoricoCaixas() {
+  const fechados = caixasCaramell
+    .filter(caixa => caixa.status === "Fechado")
+    .slice()
+    .reverse();
+
+  if (fechados.length === 0) {
+    return "<p>Nenhum caixa fechado ainda.</p>";
+  }
+
+  return fechados.map(caixa => `
+    <details class="pedido">
+      <summary>
+        <strong>
+          Caixa ${escapar(caixa.id)}
+        </strong>
+        <br>
+        ${new Date(caixa.aberturaEm).toLocaleDateString("pt-BR")}
+        — ${escapar(caixa.responsavel)}
+      </summary>
+
+      <p>
+        <strong>Fechamento:</strong>
+        ${new Date(caixa.fechamentoEm).toLocaleString("pt-BR")}
+      </p>
+
+      ${gerarRelatorioCaixa(caixa)}
+    </details>
+  `).join("");
+}
+
+// ------------------------------------------------------
+// PAINEL FINANCEIRO COMPLETO
+// ------------------------------------------------------
+
+function atualizarPainelFinanceiro() {
+  const area = document.getElementById("painelFinanceiro");
+
+  if (!area) return;
+
+  if (!caixaAtual) {
+    area.innerHTML = `
+      <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
+
+      <h3>🔐 Abertura do caixa</h3>
+
+      <p>Informe quanto existe em dinheiro na gaveta.</p>
+
+      <label>Saldo inicial em dinheiro</label>
+
+      <input
+        id="saldoInicialCaixa"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Ex.: 100.00"
+      >
+
+      <button type="button" onclick="abrirCaixaFinanceiro()">
+        Abrir caixa
+      </button>
+
+      <hr>
+
+      <h3>📚 Histórico de caixas anteriores</h3>
+
+      ${gerarHistoricoCaixas()}
+    `;
+
+    return;
+  }
+
+  const resumo = resumoFinanceiroCaixa(caixaAtual);
+
+  const historico = (caixaAtual.movimentacoes || [])
+    .slice()
+    .reverse()
+    .map(movimento => {
+      const valor = movimento.tipo === "Venda"
+        ? movimento.totalCobrado
+        : movimento.valor;
+
+      return `
+        <div class="pedido">
+          <strong>${escapar(movimento.tipo)}</strong>
+          <p>${escapar(movimento.categoria || "")}</p>
+          <p>${escapar(movimento.descricao || ("Pedido nº " + (movimento.pedidoNumero || "")))}</p>
+          <p><strong>${formatarDinheiro(valor)}</strong></p>
+          <small>${new Date(movimento.data).toLocaleString("pt-BR")}</small>
+        </div>
+      `;
+    }).join("");
+
+  area.innerHTML = `
+    <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
+
+    <h3>🟢 Caixa aberto</h3>
+
+    <p><strong>Responsável:</strong> ${escapar(caixaAtual.responsavel)}</p>
+
+    <p><strong>Abertura:</strong>
+      ${new Date(caixaAtual.aberturaEm).toLocaleString("pt-BR")}
+    </p>
+
+    <p><strong>Saldo inicial:</strong>
+      ${formatarDinheiro(caixaAtual.saldoInicial)}
+    </p>
+
+    <div style="background:#713b28;color:white;padding:15px;border-radius:10px;margin:15px 0;">
+      <p>Dinheiro esperado na gaveta</p>
+      <h2>${formatarDinheiro(resumo.saldoFisico)}</h2>
+    </div>
+
+    <h3>📊 Resumo das vendas</h3>
+
+    <p>Produtos: ${formatarDinheiro(resumo.produtos)}</p>
+    <p>Juros: ${formatarDinheiro(resumo.juros)}</p>
+    <p>Total cobrado: <strong>${formatarDinheiro(resumo.totalCobrado)}</strong></p>
+    <p>Taxas da operadora: ${formatarDinheiro(resumo.taxas)}</p>
+    <p>Valor líquido previsto: <strong>${formatarDinheiro(resumo.liquido)}</strong></p>
+
+    <hr>
+
+    <h3>💳 Formas de pagamento</h3>
+
+    <p>Dinheiro: ${formatarDinheiro(resumo.dinheiro)}</p>
+    <p>Pix: ${formatarDinheiro(resumo.pix)}</p>
+    <p>Débito: ${formatarDinheiro(resumo.debito)}</p>
+    <p>Crédito: ${formatarDinheiro(resumo.credito)}</p>
+
+    <hr>
+
+    <h3>📋 Movimentações do caixa</h3>
+
+    ${historico || "<p>Nenhuma movimentação registrada.</p>"}
+
+    <hr>
+
+    <h3>🔒 Fechamento diário</h3>
+
+    <p>Conte o dinheiro disponível na gaveta e informe abaixo.</p>
+
+    <label>Dinheiro contado (R$)</label>
+
+    <input
+      id="valorContadoCaixa"
+      type="number"
+      min="0"
+      step="0.01"
+      placeholder="Ex.: 250.00"
+    >
+
+    <button
+      type="button"
+      onclick="fecharCaixaFinanceiro()"
+      style="background:#28743a;"
+    >
+      Fechar caixa do dia
+    </button>
+
+    <hr>
+
+    <h3>📚 Histórico de caixas anteriores</h3>
+
+    ${gerarHistoricoCaixas()}
+  `;
+}
+
+// ======================================================
+// FIM DA PARTE 4
+// ======================================================
