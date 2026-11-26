@@ -160,37 +160,73 @@ function calcularTotal() {
 // IMPRESSÃO DE COMANDAS - CARAMELL / RAWBT
 // ==========================================
 
+
+
 function gerarComanda(pedido) {
-  const linha = "--------------------------------";
+  const largura = 32;
+  const linha = "-".repeat(largura);
+
+  function centralizar(texto) {
+    texto = String(texto);
+    const espacos = Math.max(0, Math.floor((largura - texto.length) / 2));
+    return " ".repeat(espacos) + texto + "\n";
+  }
+
+  function quebrarTexto(texto, maximo = largura) {
+    const palavras = String(texto).split(" ");
+    const linhas = [];
+    let atual = "";
+
+    palavras.forEach(palavra => {
+      if ((atual + " " + palavra).trim().length > maximo) {
+        if (atual) linhas.push(atual);
+        atual = palavra;
+      } else {
+        atual = (atual + " " + palavra).trim();
+      }
+    });
+
+    if (atual) linhas.push(atual);
+
+    return linhas.join("\n") + "\n";
+  }
 
   let texto = "";
 
   texto += "\n";
-  texto += "          CARAMELL\n";
-  texto += "       PEDIDO DE VENDA\n";
+  texto += centralizar("CARAMELL");
+  texto += centralizar("PEDIDO DE VENDA");
   texto += linha + "\n";
 
   texto += "PEDIDO Nº: " + pedido.numero + "\n";
-  texto += "DATA: " + pedido.data + "\n";
-  texto += "CLIENTE: " + pedido.cliente + "\n";
-  texto += "ATENDENTE: " + pedido.atendente + "\n";
+  texto += quebrarTexto("DATA: " + pedido.data);
+  texto += quebrarTexto("CLIENTE: " + pedido.cliente);
+  texto += quebrarTexto("ATENDENTE: " + pedido.atendente);
 
   texto += linha + "\n";
-  texto += "PRODUTOS\n\n";
+  texto += centralizar("PRODUTOS");
+  texto += "\n";
 
   (pedido.itens || []).forEach(item => {
-    texto += item.quantidade + "x " + item.produto + "\n";
-    texto += "   Sabor: " + item.sabor + "\n";
-    texto += "   Unit.: " + formatarDinheiro(item.preco) + "\n";
-    texto += "   Total: " +
-      formatarDinheiro(item.preco * item.quantidade) + "\n\n";
+    texto += quebrarTexto(
+      item.quantidade + "x " + item.produto
+    );
+
+    texto += quebrarTexto("Sabor: " + item.sabor);
+    texto += "Unit.: " + formatarDinheiro(item.preco) + "\n";
+    texto += "Total: " +
+      formatarDinheiro(item.preco * item.quantidade) + "\n";
+
+    texto += "\n";
   });
 
   texto += linha + "\n";
   texto += "TOTAL: " + formatarDinheiro(pedido.total) + "\n";
   texto += linha + "\n";
 
-  texto += "PAGAMENTO: " + (pedido.pagamento || "Pendente") + "\n";
+  texto += quebrarTexto(
+    "PAGAMENTO: " + (pedido.pagamento || "Pendente")
+  );
 
   if (pedido.status === "Pago") {
     texto += "RECEBIDO: " + formatarDinheiro(pedido.recebido) + "\n";
@@ -198,13 +234,13 @@ function gerarComanda(pedido) {
   }
 
   texto += linha + "\n";
-  texto += "     OBRIGADO PELA PREFERENCIA!\n";
-  texto += "          CARAMELL\n";
+  texto += centralizar("OBRIGADO PELA");
+  texto += centralizar("PREFERENCIA!");
+  texto += centralizar("CARAMELL");
   texto += "\n\n\n";
 
   return texto;
 }
-
 
 
 
@@ -854,16 +890,16 @@ function finalizarPedido(indice) {
   atualizarCaixa();
   atualizarHistorico();
 
+
+
+  // IMPRIMIR APÓS CONFIRMAR PAGAMENTO
+  imprimirPedido(pedido);
+
   alert(
     "Pagamento confirmado!\n" +
     "Forma: " + forma +
     "\nTroco: " + formatarDinheiro(troco)
   );
-
-  // IMPRIMIR APÓS CONFIRMAR PAGAMENTO
-  imprimirPedido(pedido);
-}
-
 
 
 
