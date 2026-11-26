@@ -806,6 +806,7 @@ function finalizarPedido(indice) {
   pedido.pagamento = forma;
   pedido.recebido = recebido;
   pedido.troco = troco;
+  pedido.statusProducao = "Recebido";
 
   salvarDados();
   atualizarCaixa();
