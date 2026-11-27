@@ -2735,3 +2735,729 @@ function atualizarPainelFinanceiro() {
 // ======================================================
 // FIM DA PARTE 4
 // ======================================================
+
+
+
+
+
+
+// ======================================================
+// CARAMELL - MODO DE TESTES E MODO OFICIAL
+// PARTE 1 - SEPARAÇÃO E ARMAZENAMENTO
+// ======================================================
+
+let ambienteCaramell = "teste";
+
+const CHAVE_AMBIENTE_CARAMELL = "caramell_ambiente";
+const CHAVE_MIGRACAO_CARAMELL = "caramell_ambientes_migrados_v1";
+
+function chavePedidosAmbiente() {
+  return ambienteCaramell === "oficial"
+    ? "caramell_pedidos_oficial"
+    : "caramell_pedidos_teste";
+}
+
+function chaveCaixasAmbiente() {
+  return ambienteCaramell === "oficial"
+    ? "caramell_caixas_oficial_v1"
+    : "caramell_caixas_teste_v1";
+}
+
+// ------------------------------------------------------
+// PREPARAR OS DOIS AMBIENTES
+// ------------------------------------------------------
+
+function prepararAmbientesCaramell() {
+  try {
+    // Os dados antigos serão preservados no ambiente de testes.
+    if (
+      localStorage.getItem(CHAVE_MIGRACAO_CARAMELL) !== "sim"
+    ) {
+      const pedidosAntigos = localStorage.getItem("caramell_pedidos");
+      const caixasAntigos = localStorage.getItem("caramell_caixas_v1");
+
+      if (
+        localStorage.getItem("caramell_pedidos_teste") === null
+      ) {
+        localStorage.setItem(
+          "caramell_pedidos_teste",
+          pedidosAntigos || "[]"
+        );
+      }
+
+      if (
+        localStorage.getItem("caramell_caixas_teste_v1") === null
+      ) {
+        localStorage.setItem(
+          "caramell_caixas_teste_v1",
+          caixasAntigos || "[]"
+        );
+      }
+
+      localStorage.setItem(
+        "caramell_pedidos_oficial",
+        localStorage.getItem("caramell_pedidos_oficial") || "[]"
+      );
+
+      localStorage.setItem(
+        "caramell_caixas_oficial_v1",
+        localStorage.getItem("caramell_caixas_oficial_v1") || "[]"
+      );
+
+      localStorage.setItem(CHAVE_MIGRACAO_CARAMELL, "sim");
+    }
+
+    ambienteCaramell =
+      localStorage.getItem(CHAVE_AMBIENTE_CARAMELL) || "teste";
+
+    if (
+      ambienteCaramell !== "teste" &&
+      ambienteCaramell !== "oficial"
+    ) {
+      ambienteCaramell = "teste";
+    }
+
+    localStorage.setItem(
+      CHAVE_AMBIENTE_CARAMELL,
+      ambienteCaramell
+    );
+
+  } catch (erro) {
+    ambienteCaramell = "teste";
+
+    alert(
+      "Não foi possível preparar os ambientes. " +
+      "Os dados antigos foram preservados.\n" +
+      erro.message
+    );
+  }
+}
+
+// ------------------------------------------------------
+// SUBSTITUIR O SALVAMENTO DE PEDIDOS
+// ------------------------------------------------------
+
+salvarDados = function() {
+  try {
+    localStorage.setItem(
+      chavePedidosAmbiente(),
+      JSON.stringify(pedidos)
+    );
+
+    return true;
+
+  } catch (erro) {
+    alert("Erro ao salvar pedidos: " + erro.message);
+    return false;
+  }
+};
+
+// ------------------------------------------------------
+// SUBSTITUIR O CARREGAMENTO DE PEDIDOS
+// ------------------------------------------------------
+
+carregarDados = function() {
+  try {
+    const dados = JSON.parse(
+      localStorage.getItem(chavePedidosAmbiente()) || "[]"
+    );
+
+    pedidos = Array.isArray(dados) ? dados : [];
+
+    pedidos.forEach(pedido => {
+      if (!pedido.status) pedido.status = "Pendente";
+      if (!pedido.statusProducao) pedido.statusProducao = "Recebido";
+      if (!Array.isArray(pedido.itens)) pedido.itens = [];
+      if (pedido.telefone === undefined) pedido.telefone = "";
+      if (pedido.recebido === undefined) pedido.recebido = 0;
+      if (pedido.troco === undefined) pedido.troco = 0;
+
+      pedido.ambiente = pedido.ambiente || ambienteCaramell;
+    });
+
+  } catch (erro) {
+    pedidos = [];
+    alert("Erro ao carregar pedidos: " + erro.message);
+  }
+};
+
+// ------------------------------------------------------
+// SUBSTITUIR O SALVAMENTO DOS CAIXAS
+// ------------------------------------------------------
+
+salvarCaixas = function() {
+  try {
+    localStorage.setItem(
+      chaveCaixasAmbiente(),
+      JSON.stringify(caixasCaramell)
+    );
+
+    return true;
+
+  } catch (erro) {
+    alert("Erro ao salvar o caixa: " + erro.message);
+    return false;
+  }
+};
+
+// ------------------------------------------------------
+// SUBSTITUIR O CARREGAMENTO DOS CAIXAS
+// ------------------------------------------------------
+
+carregarCaixas = function() {
+  try {
+    const dados = JSON.parse(
+      localStorage.getItem(chaveCaixasAmbiente()) || "[]"
+    );
+
+    caixasCaramell = Array.isArray(dados) ? dados : [];
+
+    caixaAtual = caixasCaramell.find(
+      caixa => caixa.status === "Aberto"
+    ) || null;
+
+  } catch (erro) {
+    caixasCaramell = [];
+    caixaAtual = null;
+
+    alert("Erro ao carregar os dados financeiros: " + erro.message);
+  }
+};
+
+// ======================================================
+// FIM DA PARTE 1 - AMBIENTES
+//======================================================
+
+
+
+
+// ======================================================
+// CARAMELL - MODO DE TESTES E MODO OFICIAL
+// PARTE 2 - IDENTIFICAÇÃO E TROCA DE AMBIENTE
+// ======================================================
+
+// ------------------------------------------------------
+// NOME DO AMBIENTE ATUAL
+// ------------------------------------------------------
+
+function nomeAmbienteCaramell() {
+  return ambienteCaramell === "oficial"
+    ? "MODO OFICIAL"
+    : "MODO DE TESTES";
+}
+
+// ------------------------------------------------------
+// CONTROLES VISUAIS DOS AMBIENTES
+// ------------------------------------------------------
+
+function instalarControlesAmbiente() {
+  const painel = document.getElementById("painelFinanceiro");
+
+  if (!painel) return;
+
+  const existente = document.getElementById(
+    "controlesAmbienteCaramell"
+  );
+
+  if (existente) existente.remove();
+
+  const controles = document.createElement("div");
+
+  controles.id = "controlesAmbienteCaramell";
+
+  controles.style.cssText = `
+    padding: 14px;
+    margin-bottom: 16px;
+    border: 2px solid #713b28;
+    border-radius: 12px;
+    background: #fff8f1;
+    color: #542b20;
+  `;
+
+  const titulo = document.createElement("h3");
+
+  titulo.textContent = nomeAmbienteCaramell();
+
+  titulo.style.cssText = `
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: bold;
+  `;
+
+  const descricao = document.createElement("p");
+
+  descricao.textContent =
+    ambienteCaramell === "teste"
+      ? "Os pedidos e movimentações deste ambiente são apenas testes."
+      : "Você está no ambiente oficial. Os registros ficam separados dos testes.";
+
+  descricao.style.cssText = `
+    margin: 0 0 12px;
+    font-size: 13px;
+  `;
+
+  const botao = document.createElement("button");
+
+  botao.type = "button";
+
+  botao.textContent =
+    ambienteCaramell === "teste"
+      ? "Entrar no Modo Oficial"
+      : "Voltar ao Modo de Testes";
+
+  botao.style.cssText = `
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #713b28;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+  `;
+
+  botao.onclick = alternarAmbienteCaramell;
+
+  controles.appendChild(titulo);
+  controles.appendChild(descricao);
+  controles.appendChild(botao);
+
+  painel.insertBefore(controles, painel.firstChild);
+}
+
+// ------------------------------------------------------
+// ALTERNAR ENTRE TESTES E OFICIAL
+// ------------------------------------------------------
+
+function alternarAmbienteCaramell() {
+
+  // Não permitir troca com caixa aberto.
+  if (caixaAtual && caixaAtual.status === "Aberto") {
+    alert(
+      "Para trocar de ambiente, primeiro feche o caixa atual."
+    );
+    return;
+  }
+
+  // Não permitir troca com produtos no carrinho.
+  if (carrinho.length > 0) {
+    alert(
+      "Existe um pedido em andamento no carrinho.\n\n" +
+      "Finalize ou limpe o carrinho antes de trocar de ambiente."
+    );
+    return;
+  }
+
+  const novoAmbiente =
+    ambienteCaramell === "teste"
+      ? "oficial"
+      : "teste";
+
+  const nomeNovo =
+    novoAmbiente === "oficial"
+      ? "MODO OFICIAL"
+      : "MODO DE TESTES";
+
+  const confirmou = confirm(
+    "Você está no " + nomeAmbienteCaramell() + ".\n\n" +
+    "Deseja realmente trocar para " + nomeNovo + "?\n\n" +
+    "Os pedidos e dados financeiros permanecerão separados."
+  );
+
+  if (!confirmou) return;
+
+  try {
+    ambienteCaramell = novoAmbiente;
+
+    localStorage.setItem(
+      CHAVE_AMBIENTE_CARAMELL,
+      ambienteCaramell
+    );
+
+    // Carregar somente os pedidos do novo ambiente.
+    carregarDados();
+
+    // Carregar somente o caixa do novo ambiente.
+    carregarCaixas();
+
+    // Atualizar as telas.
+    atualizarTela();
+    atualizarHistorico();
+    atualizarCaixa();
+    atualizarPainelFinanceiro();
+
+    alert("Ambiente alterado para " + nomeNovo + ".");
+
+  } catch (erro) {
+    alert(
+      "Não foi possível trocar de ambiente.\n" +
+      erro.message
+    );
+  }
+}
+
+// ------------------------------------------------------
+// ATUALIZAR OS CONTROLES SEM ALTERAR O FINANCEIRO
+// ------------------------------------------------------
+
+const atualizarPainelFinanceiroAmbienteOriginal =
+  atualizarPainelFinanceiro;
+
+atualizarPainelFinanceiro = function() {
+
+  atualizarPainelFinanceiroAmbienteOriginal();
+
+  instalarControlesAmbiente();
+};
+
+// ======================================================
+// FIM DA PARTE 2 - TROCA DE AMBIENTE
+// ======================================================
+
+
+// ======================================================
+// CARAMELL - MODO DE TESTES E MODO OFICIAL
+// PARTE 3 - BACKUP E LIMPEZA DOS TESTES
+// ======================================================
+
+// ------------------------------------------------------
+// EXPORTAR BACKUP DOS DADOS DE TESTE
+// ------------------------------------------------------
+
+function exportarBackupTestesCaramell() {
+
+  try {
+    const pedidosTeste = JSON.parse(
+      localStorage.getItem("caramell_pedidos_teste") || "[]"
+    );
+
+    const caixasTeste = JSON.parse(
+      localStorage.getItem("caramell_caixas_teste_v1") || "[]"
+    );
+
+    const backup = {
+      sistema: "Caramell Pedidos",
+      tipo: "Backup dos dados de teste",
+      ambiente: "teste",
+      criadoEm: new Date().toISOString(),
+      pedidos: pedidosTeste,
+      caixas: caixasTeste
+    };
+
+    const conteudo = JSON.stringify(backup, null, 2);
+
+    const nomeArquivo =
+      "backup-caramell-testes-" +
+      new Date().toISOString().replace(/[:.]/g, "-") +
+      ".json";
+
+    // Criar arquivo para download.
+    const arquivo = new Blob(
+      [conteudo],
+      { type: "application/json" }
+    );
+
+    const endereco = URL.createObjectURL(arquivo);
+
+    const link = document.createElement("a");
+
+    link.href = endereco;
+    link.download = nomeArquivo;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Guardar também uma cópia no armazenamento local.
+    const chaveBackup =
+      "caramell_backup_testes_" + Date.now();
+
+    localStorage.setItem(chaveBackup, conteudo);
+
+    URL.revokeObjectURL(endereco);
+
+    alert(
+      "Backup dos testes criado!\n\n" +
+      "Arquivo: " + nomeArquivo + "\n\n" +
+      "Também foi guardada uma cópia no armazenamento do aplicativo."
+    );
+
+    return true;
+
+  } catch (erro) {
+
+    alert(
+      "Não foi possível criar o backup.\n\n" +
+      "Nenhum dado de teste foi apagado.\n\n" +
+      erro.message
+    );
+
+    return false;
+  }
+}
+
+// ------------------------------------------------------
+// VERIFICAR SE EXISTE CAIXA DE TESTE ABERTO
+// ------------------------------------------------------
+
+function existeCaixaTesteAberto() {
+
+  try {
+    const caixas = JSON.parse(
+      localStorage.getItem("caramell_caixas_teste_v1") || "[]"
+    );
+
+    return Array.isArray(caixas) &&
+      caixas.some(caixa => caixa.status === "Aberto");
+
+  } catch (erro) {
+    alert("Não foi possível verificar os caixas de teste.");
+    return true;
+  }
+}
+
+// ------------------------------------------------------
+// LIMPAR SOMENTE OS DADOS DO MODO DE TESTES
+// ------------------------------------------------------
+
+function limparDadosTesteCaramell() {
+
+  if (existeCaixaTesteAberto()) {
+    alert(
+      "Existe um caixa de teste aberto.\n\n" +
+      "Feche o caixa antes de limpar os dados."
+    );
+    return;
+  }
+
+  const primeiraConfirmacao = confirm(
+    "ATENÇÃO!\n\n" +
+    "Você está prestes a apagar os pedidos e caixas do MODO DE TESTES.\n\n" +
+    "Antes disso, será criado um backup.\n\n" +
+    "Os dados do MODO OFICIAL NÃO serão apagados.\n\n" +
+    "Deseja continuar?"
+  );
+
+  if (!primeiraConfirmacao) return;
+
+  // Criar o backup antes de apagar.
+  const backupCriado = exportarBackupTestesCaramell();
+
+  if (!backupCriado) {
+    alert(
+      "A limpeza foi cancelada porque o backup não foi concluído."
+    );
+    return;
+  }
+
+  const segundaConfirmacao = confirm(
+    "CONFIRMAÇÃO FINAL\n\n" +
+    "Deseja realmente apagar todos os pedidos e movimentações de teste?\n\n" +
+    "O backup já foi criado."
+  );
+
+  if (!segundaConfirmacao) {
+    alert(
+      "Limpeza cancelada. Seus dados de teste foram preservados."
+    );
+    return;
+  }
+
+  try {
+
+    // Remover exclusivamente as chaves de teste.
+    localStorage.removeItem("caramell_pedidos_teste");
+    localStorage.removeItem("caramell_caixas_teste_v1");
+
+    // Se estiver no ambiente de testes, atualizar a memória.
+    if (ambienteCaramell === "teste") {
+
+      pedidos = [];
+      caixasCaramell = [];
+      caixaAtual = null;
+
+      atualizarTela();
+      atualizarHistorico();
+      atualizarCaixa();
+      atualizarPainelFinanceiro();
+    }
+
+    alert(
+      "Dados de teste apagados com sucesso!\n\n" +
+      "O backup foi preservado.\n\n" +
+      "Os dados do MODO OFICIAL não foram alterados."
+    );
+
+  } catch (erro) {
+
+    alert(
+      "Ocorreu um erro durante a limpeza.\n" +
+      erro.message
+    );
+  }
+}
+
+// ======================================================
+// FIM DA PARTE 3 - BACKUP E LIMPEZA
+// ======================================================
+
+
+// ======================================================
+// CARAMELL - MODO DE TESTES E MODO OFICIAL
+// PARTE 4 - INTEGRAÇÃO FINAL
+// ======================================================
+
+// ------------------------------------------------------
+// BOTÕES DE BACKUP E LIMPEZA
+// ------------------------------------------------------
+
+function instalarBotoesTesteCaramell() {
+
+  const painel = document.getElementById("painelFinanceiro");
+
+  if (!painel) return;
+
+  const existente = document.getElementById(
+    "acoesTesteCaramell"
+  );
+
+  if (existente) existente.remove();
+
+  // Os controles de limpeza aparecem somente no modo de testes.
+  if (ambienteCaramell !== "teste") return;
+
+  const area = document.createElement("div");
+
+  area.id = "acoesTesteCaramell";
+
+  area.style.cssText = `
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #d6b69f;
+    border-radius: 10px;
+    background: #fff8f1;
+  `;
+
+  const titulo = document.createElement("h3");
+
+  titulo.textContent = "GERENCIAMENTO DOS TESTES";
+
+  titulo.style.cssText = `
+    margin: 0 0 8px;
+    color: #542b20;
+    font-size: 16px;
+  `;
+
+  const descricao = document.createElement("p");
+
+  descricao.textContent =
+    "Faça uma cópia de segurança antes de limpar os registros fictícios.";
+
+  descricao.style.cssText = `
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #542b20;
+  `;
+
+  const botaoBackup = document.createElement("button");
+
+  botaoBackup.type = "button";
+  botaoBackup.textContent = "Exportar backup dos testes";
+
+  botaoBackup.style.cssText = `
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #713b28;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+  `;
+
+  botaoBackup.onclick = exportarBackupTestesCaramell;
+
+  const botaoLimpar = document.createElement("button");
+
+  botaoLimpar.type = "button";
+  botaoLimpar.textContent = "Limpar dados de teste";
+
+  botaoLimpar.style.cssText = `
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #a33;
+    border-radius: 8px;
+    background: #fff;
+    color: #a33;
+    font-weight: bold;
+    cursor: pointer;
+  `;
+
+  botaoLimpar.onclick = limparDadosTesteCaramell;
+
+  area.appendChild(titulo);
+  area.appendChild(descricao);
+  area.appendChild(botaoBackup);
+  area.appendChild(botaoLimpar);
+
+  painel.appendChild(area);
+}
+
+// ------------------------------------------------------
+// INTEGRAR OS BOTÕES AO PAINEL FINANCEIRO
+// ------------------------------------------------------
+
+const atualizarPainelFinanceiroComAmbiente =
+  atualizarPainelFinanceiro;
+
+atualizarPainelFinanceiro = function() {
+
+  atualizarPainelFinanceiroComAmbiente();
+
+  instalarControlesAmbiente();
+  instalarBotoesTesteCaramell();
+};
+
+// ------------------------------------------------------
+// PREPARAR O AMBIENTE ANTES DE USAR OS DADOS
+// ------------------------------------------------------
+
+function inicializarAmbientesCaramell() {
+
+  prepararAmbientesCaramell();
+
+  // Carregar somente os pedidos do ambiente selecionado.
+  carregarDados();
+
+  // Carregar somente os caixas do ambiente selecionado.
+  carregarCaixas();
+
+  // Atualizar as telas com os dados corretos.
+  atualizarTela();
+  atualizarHistorico();
+  atualizarCaixa();
+
+  if (document.getElementById("painelFinanceiro")) {
+    atualizarPainelFinanceiro();
+  }
+
+  console.log(
+    "Caramell iniciado em: " + nomeAmbienteCaramell()
+  );
+}
+
+// Executar a preparação final dos ambientes.
+inicializarAmbientesCaramell();
+
+// ======================================================
+// FIM DA PARTE 4
+// MODO DE TESTES E MODO OFICIAL
+// ======================================================
+
+
+
+  
