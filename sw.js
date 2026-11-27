@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "caramell-v3";
+const CACHE_NAME = "caramell-v4";
 
 const ARQUIVOS = [
   "./",
