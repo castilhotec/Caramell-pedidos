@@ -2454,6 +2454,9 @@ function atualizarPainelFinanceiro() {
 
   if (!area) return;
 
+  const historicoCaixas = gerarHistoricoCaixas();
+
+  // ABERTURA DO CAIXA
   if (!caixaAtual) {
     area.innerHTML = `
       <h2 class="secao-titulo">💰 Financeiro da Caramell</h2>
@@ -2472,7 +2475,10 @@ function atualizarPainelFinanceiro() {
         placeholder="Ex.: 100.00"
       >
 
-      <button type="button" onclick="abrirCaixaFinanceiro()">
+      <button
+        type="button"
+        onclick="abrirCaixaFinanceiro()"
+      >
         Abrir caixa
       </button>
 
@@ -2480,29 +2486,52 @@ function atualizarPainelFinanceiro() {
 
       <h3>📚 Histórico de caixas anteriores</h3>
 
-      ${gerarHistoricoCaixas()}
+      ${historicoCaixas}
     `;
 
     return;
   }
 
+  // RESUMO FINANCEIRO
   const resumo = resumoFinanceiroCaixa(caixaAtual);
 
   const historico = (caixaAtual.movimentacoes || [])
     .slice()
     .reverse()
     .map(movimento => {
-      const valor = movimento.tipo === "Venda"
+
+      const ehVenda = movimento.tipo === "Venda";
+
+      const valor = ehVenda
         ? movimento.totalCobrado
         : movimento.valor;
+
+      const descricao = ehVenda
+        ? "Pedido nº " + (movimento.pedidoNumero || "")
+        : movimento.descricao || movimento.categoria || "";
 
       return `
         <div class="pedido">
           <strong>${escapar(movimento.tipo)}</strong>
-          <p>${escapar(movimento.categoria || "")}</p>
-          <p>${escapar(movimento.descricao || ("Pedido nº " + (movimento.pedidoNumero || "")))}</p>
-          <p><strong>${formatarDinheiro(valor)}</strong></p>
-          <small>${new Date(movimento.data).toLocaleString("pt-BR")}</small>
+
+          <p>${escapar(descricao)}</p>
+
+          ${
+            ehVenda
+              ? `<p>Cliente: ${escapar(movimento.cliente || "")}</p>
+                 <p>Pagamento: ${escapar(movimento.formaPagamento || "")}</p>`
+              : ""
+          }
+
+          <p>
+            <strong>${formatarDinheiro(valor || 0)}</strong>
+          </p>
+
+          <small>
+            ${movimento.data
+              ? new Date(movimento.data).toLocaleString("pt-BR")
+              : ""}
+          </small>
         </div>
       `;
     }).join("");
@@ -2512,37 +2541,155 @@ function atualizarPainelFinanceiro() {
 
     <h3>🟢 Caixa aberto</h3>
 
-    <p><strong>Responsável:</strong> ${escapar(caixaAtual.responsavel)}</p>
+    <p>
+      <strong>Responsável:</strong>
+      ${escapar(caixaAtual.responsavel || "")}
+    </p>
 
-    <p><strong>Abertura:</strong>
+    <p>
+      <strong>Abertura:</strong>
       ${new Date(caixaAtual.aberturaEm).toLocaleString("pt-BR")}
     </p>
 
-    <p><strong>Saldo inicial:</strong>
+    <p>
+      <strong>Saldo inicial:</strong>
       ${formatarDinheiro(caixaAtual.saldoInicial)}
     </p>
 
-    <div style="background:#713b28;color:white;padding:15px;border-radius:10px;margin:15px 0;">
-      <p>Dinheiro esperado na gaveta</p>
-      <h2>${formatarDinheiro(resumo.saldoFisico)}</h2>
-    </div>
-
-    <h3>📊 Resumo das vendas</h3>
-
-    <p>Produtos: ${formatarDinheiro(resumo.produtos)}</p>
-    <p>Juros: ${formatarDinheiro(resumo.juros)}</p>
-    <p>Total cobrado: <strong>${formatarDinheiro(resumo.totalCobrado)}</strong></p>
-    <p>Taxas da operadora: ${formatarDinheiro(resumo.taxas)}</p>
-    <p>Valor líquido previsto: <strong>${formatarDinheiro(resumo.liquido)}</strong></p>
-
     <hr>
+
+    <h3>📊 Faturamento bruto</h3>
+
+    <div class="pedido">
+      <p>Valor dos produtos</p>
+      <h3>${formatarDinheiro(resumo.produtos)}</h3>
+
+      <p>Juros cobrados</p>
+      <h3>${formatarDinheiro(resumo.juros)}</h3>
+
+      <hr>
+
+      <p><strong>Total vendido no dia</strong></p>
+
+      <h2 style="color:#713b28 !important;">
+        ${formatarDinheiro(resumo.totalCobrado)}
+      </h2>
+    </div>
 
     <h3>💳 Formas de pagamento</h3>
 
-    <p>Dinheiro: ${formatarDinheiro(resumo.dinheiro)}</p>
-    <p>Pix: ${formatarDinheiro(resumo.pix)}</p>
-    <p>Débito: ${formatarDinheiro(resumo.debito)}</p>
-    <p>Crédito: ${formatarDinheiro(resumo.credito)}</p>
+    <div class="pedido">
+      <p>
+        Dinheiro:
+        <strong>${formatarDinheiro(resumo.dinheiro)}</strong>
+      </p>
+
+      <p>
+        Pix:
+        <strong>${formatarDinheiro(resumo.pix)}</strong>
+      </p>
+
+      <p>
+        Débito:
+        <strong>${formatarDinheiro(resumo.debito)}</strong>
+      </p>
+
+      <p>
+        Crédito:
+        <strong>${formatarDinheiro(resumo.credito)}</strong>
+      </p>
+    </div>
+
+    <h3>📉 Taxas e resultado previsto</h3>
+
+    <div class="pedido">
+      <p>
+        Taxas das operadoras:
+        <strong>${formatarDinheiro(resumo.taxas)}</strong>
+      </p>
+
+      <p>
+        Líquido previsto:
+        <strong>${formatarDinheiro(resumo.liquido)}</strong>
+      </p>
+    </div>
+
+    <hr>
+
+    <h3>💵 Controle do dinheiro físico</h3>
+
+    <div style="
+      background:#713b28;
+      color:white;
+      padding:15px;
+      border-radius:10px;
+      margin:15px 0;
+    ">
+      <p style="color:white;">Dinheiro esperado na gaveta</p>
+
+      <h2 style="color:white !important;">
+        ${formatarDinheiro(resumo.saldoFisico)}
+      </h2>
+    </div>
+
+    <div class="pedido">
+      <p>
+        Saldo inicial:
+        <strong>${formatarDinheiro(caixaAtual.saldoInicial)}</strong>
+      </p>
+
+      <p>
+        Vendas em dinheiro:
+        <strong>${formatarDinheiro(resumo.dinheiro)}</strong>
+      </p>
+
+      <p>
+        Entradas adicionais:
+        <strong>${formatarDinheiro(resumo.entradas)}</strong>
+      </p>
+
+      <p>
+        Retiradas:
+        <strong>${formatarDinheiro(resumo.retiradas)}</strong>
+      </p>
+    </div>
+
+    <hr>
+
+    <h3>➕ Registrar entrada ou retirada</h3>
+
+    <label>Valor</label>
+
+    <input
+      id="valorMovimentacao"
+      type="number"
+      min="0.01"
+      step="0.01"
+      placeholder="Ex.: 50.00"
+    >
+
+    <label>Descrição</label>
+
+    <input
+      id="descricaoMovimentacao"
+      type="text"
+      placeholder="Ex.: Reposição de dinheiro"
+    >
+
+    <button
+      type="button"
+      onclick="registrarMovimentacaoFinanceira('Entrada')"
+    >
+      Registrar entrada
+    </button>
+
+    <button
+      type="button"
+      class="botao-secundario"
+      onclick="registrarMovimentacaoFinanceira('Retirada')"
+    >
+      Registrar retirada
+    </button>
 
     <hr>
 
@@ -2554,7 +2701,9 @@ function atualizarPainelFinanceiro() {
 
     <h3>🔒 Fechamento diário</h3>
 
-    <p>Conte o dinheiro disponível na gaveta e informe abaixo.</p>
+    <p>
+      Conte o dinheiro disponível na gaveta e informe abaixo.
+    </p>
 
     <label>Dinheiro contado (R$)</label>
 
@@ -2578,9 +2727,10 @@ function atualizarPainelFinanceiro() {
 
     <h3>📚 Histórico de caixas anteriores</h3>
 
-    ${gerarHistoricoCaixas()}
+    ${historicoCaixas}
   `;
 }
+
 
 // ======================================================
 // FIM DA PARTE 4
